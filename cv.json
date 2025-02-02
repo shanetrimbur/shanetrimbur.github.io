@@ -1,0 +1,532 @@
+{
+  "basics": {
+    "name": "Shane Trimbur",
+    "label": "Solutions Architect -- Client Solutions -- Cybersecurity Engineering",
+    "image": "/me_avatar.jpg",
+    "email": "trimbur.careers@gmail.com",
+    "phone": "626.524.8222",
+    "url": "https://github.com/shanetrimbur",
+    "summary": "Veteran technology strategist with extensive DoD enterprise expertise spanning two decades. Proven ability to build and guide diverse teams while establishing forward-looking capabilities that exceed targets. Employs insider knowledge as a Marine technical leader versed in delivering innovative solutions that meet complex government needs. Leverages deep defense sector expertise to transform mission requirements into enterprise-ready architectures.",
+    "theme": "default",
+    "location": {
+      "address": "",
+      "postalCode": "",
+      "city": "MCAS Miramar",
+      "countryCode": "US",
+      "region": "California"
+    },
+    "profiles": [
+      {
+        "network": "LinkedIn",
+        "username": "shanetrimbur",
+        "url": "https://linkedin.com/in/shanetrimbur"
+      },
+      {
+        "network": "GitHub",
+        "username": "shanetrimbur",
+        "url": "https://github.com/shanetrimbur"
+      }
+    ]
+  },
+  "work": [
+    {
+      "name": "3rd Marine Aircraft Wing",
+      "position": "Data Systems Engineering Officer -- Information Systems Security Engineer",
+      "location_type": "On site",
+      "location": "MCAS Miramar",
+      "url": "",
+      "startDate": "2023-08-01",
+      "endDate": null,
+      "summary": "Leading enterprise cloud adoption and data fusion initiatives for MARFORPAC and 3rd MAW.",
+      "highlights": [
+        "Spearheaded enterprise cloud adoption initiative impacting MARFORPAC and 3rd MAW",
+        "Pioneered innovative Azure-based data fusion system",
+        "Established advanced JADC2 capabilities"
+      ],
+      "responsibilities": [
+        "Implementing experimental multi-cloud architecture through the Joint Warfighting Cloud Capability program",
+        "Integrating Naval Research Labs with partner agencies for real-time environmental intelligence sharing"],
+      "achievements": [
+        "Designed and coordinated authority to operate for hybrid cloud environmental intelligence integrations for enhanced battlefield visualization"
+      ],
+      "skills": [
+        "Azure",
+        "Python",
+        "Powershell",
+        "MCCAST",
+        "Data Fusion"
+      ]
+    },
+    {
+      "name": "Marine Wing Communications Squadron 38",
+      "position": "Data Systems Engineering Officer -- Information Systems Security Engineer",
+      "location_type": "On site",
+      "location": "MCAS Miramar",
+      "url": "",
+      "startDate": "2022-06-01",
+      "endDate": "2023-08-01",
+      "summary": "Led award-winning JADC2 transformation initiative and tactical infrastructure modernization.",
+      "highlights": [
+        "Led systems engineering activities toward award-winning JADC2 transformation initiative",
+        "Modernized tactical infrastructure supporting 20,000+ joint force personnel",
+        "Supervised integration of advanced network systems during Project Convergence"
+      ],
+      "responsibilities": [
+        "Led systems engineering activities toward award-winning JADC2 transformation initiative that earned both the 2022 Shea Award and DON IT Excellence Award",
+        "Modernized tactical infrastructure supporting 20,000+ joint force personnel, implementing resilient architecture",
+        "Supervised integration of advanced network systems during Project Convergence, significantly reducing sensor-to-shooter timelines"
+      ],
+      "achievements": [
+        "Orchestrated integration of 300+ emerging technologies during Project Convergence 22, enhancing Joint/Multinational interoperability and JADC2 capabilities",
+        "Implemented advanced sensor-to-shooter architectures that significantly improved battlefield network integration and command and control capabilities",
+        "Contributed to successful demonstration of joint force capabilities across U.S., U.K., and Australian forces, supporting multi-domain operations"
+      ],
+      "skills": [
+        "Python",
+        "ACAS",
+        "Unified Communications",
+        "VMWare",
+        "HCI",
+        "Bash",
+        "Powershell"
+      ]
+    },
+    {
+      "name": "Marine Corps Communications-Electronics School",
+      "position": "Communications Directorate Lead",
+      "location_type": "On site",
+      "location": "MCAGCC, Twentynine Palms",
+      "startDate": "2019-08-01",
+      "endDate": "2022-06-01",
+      "summary": "Led IT portfolio management and educational technology transformation initiatives.",
+      "highlights": [
+        "Directed $9M+ annual IT portfolio program, achieving and maintaining 100% NIST/CNSS compliance while modernizing systems",
+        "Led and mentored diverse team of 10 Marines, 3 senior GS employees, and 3 contractors across technical disciplines",
+        "Transformed educational delivery through comprehensive redesign of campus architecture and business strategy, revolutionizing classroom connectivity"
+      ],
+      "responsibilities": [
+        "Managed comprehensive IT portfolio and compliance programs",
+        "Led cross-functional team of military, civilian, and contractor personnel",
+        "Oversaw campus-wide technology modernization initiatives"
+      ],
+      "achievements": [
+        "Achieved 100% NIST/CNSS compliance across all systems",
+        "Successfully modernized educational delivery infrastructure",
+        "Optimized $9M+ annual budget utilization"
+      ],
+      "skills": [
+        "IT Portfolio Management",
+        "Team Leadership",
+        "NIST Compliance",
+        "Educational Technology",
+        "Infrastructure Modernization",
+        "ITIL",
+        "802.1X",
+        "WiFi 6/802.11ax",
+        "WPA3 Enterprise",
+        "Cisco Meraki",
+        "DCPDS",
+        "TWMS",
+        "FAR Compliance",
+        "Davis-Bacon Act",
+        "OSHA Standards",
+        "Federal Contracting",
+        "DoD Infrastructure Procurement"
+      ]
+    },
+    {
+      "name": "Special Purpose Marine Air Ground Task Force Crisis Response-Central Command",
+      "position": "Information Systems Security Manager",
+      "location_type": "On site",
+      "location": "Kuwait, Bahrain, Iraq",
+      "startDate": "2017-06-01",
+      "endDate": "2019-06-01",
+      "summary": "Led multi-site cybersecurity operations in forward-deployed environments.",
+      "highlights": [
+        "Directed complex multi-site cybersecurity operations across hostile territories, maintaining zero security compromises",
+        "Engineered and implemented advanced threat detection systems and data loss prevention tools",
+        "Achieved 100% mission success rate in protecting critical operational data through innovative security architectures"
+      ],
+      "responsibilities": [
+        "Managed cybersecurity operations across multiple forward operating bases",
+        "Implemented and maintained advanced security systems",
+        "Coordinated threat response and prevention strategies"
+      ],
+      "achievements": [
+        "Maintained zero security compromises in hostile territory",
+        "Successfully protected mission-critical operational data",
+        "Developed innovative security architectures for forward-deployed environments"
+      ],
+      "skills": [
+        "Cybersecurity Operations",
+        "Threat Detection",
+        "Data Loss Prevention",
+        "Security Architecture",
+        "Multi-site Operations",
+        "Forward-Deployed Systems"
+      ]
+    },
+    {
+      "name": "1st Marine Logistics Group",
+      "position": "Information Systems Security Officer",
+      "location_type": "On site",
+      "location": "Camp Pendleton, CA",
+      "startDate": "2015-10-01",
+      "endDate": "2017-06-01",
+      "summary": "Led cybersecurity operations and network security initiatives in collaboration with key defense partners.",
+      "highlights": [
+        "Coordinated joint cybersecurity operations with USN Cyber Protection Team, implementing Security Onion suite for enhanced network visibility",
+        "Leveraged Zeek (formerly Bro) for sophisticated deep packet inspection and network traffic analysis, significantly improving threat detection capabilities",
+        "Collaborated with Johns Hopkins Applied Physics Laboratory to evaluate advanced network behavior analytics and anomaly detection systems"
+      ],
+      "responsibilities": [
+        "Led joint cybersecurity operations with Navy partners",
+        "Implemented and managed advanced network monitoring systems",
+        "Evaluated and deployed cutting-edge security analytics solutions"
+      ],
+      "achievements": [
+        "Successfully implemented Security Onion enterprise monitoring suite",
+        "Enhanced threat detection through advanced Zeek deployment",
+        "Established research partnership with Johns Hopkins APL"
+      ],
+      "skills": [
+        "Security Onion",
+        "Zeek/Bro IDS",
+        "Network Security Monitoring",
+        "Deep Packet Inspection",
+        "Threat Detection",
+        "Network Behavior Analytics",
+        "Joint Operations",
+        "Research Collaboration"
+      ]
+    },
+    {
+      "name": "Marine Corps Communications-Electronics School",
+      "position": "Cybersecurity Instruction & Curriculum Development",
+      "location_type": "On site",
+      "location": "Twentynine Palms, CA",
+      "startDate": "2012-10-01",
+      "endDate": "2015-10-01",
+      "summary": "Led development and delivery of DoD-aligned cybersecurity curriculum and technical instruction.",
+      "highlights": [
+        "Developed comprehensive DoD-aligned cybersecurity curriculum, incorporating emerging threats and defense strategies",
+        "Delivered advanced technical instruction to 200+ students in enterprise security tools, vulnerability management, and network defense",
+        "Established rigorous evaluation frameworks ensuring training materials maintain relevance against sophisticated cyber threats and align with DoD cybersecurity requirements"
+      ],
+      "responsibilities": [
+        "Developed and maintained cybersecurity curriculum",
+        "Provided technical instruction in enterprise security",
+        "Created and implemented training evaluation frameworks"
+      ],
+      "achievements": [
+        "Successfully trained 200+ cybersecurity professionals",
+        "Established DoD-aligned curriculum standards",
+        "Modernized training materials for emerging threats"
+      ],
+      "skills": [
+        "Curriculum Development",
+        "Technical Instruction",
+        "DoD Security Requirements",
+        "Enterprise Security Tools",
+        "Vulnerability Management",
+        "Network Defense",
+        "Training Evaluation",
+        "Instructional Design"
+      ]
+    },
+    {
+      "name": "2nd Battalion, 23rd Marine Regiment",
+      "position": "Information Systems Coordinator | Webmaster | Mobile Device Mgmt.",
+      "location_type": "On site",
+      "location": "Pasadena, CA",
+      "startDate": "2009-07-01",
+      "endDate": "2012-10-01",
+      "summary": "Led international communications coordination and infrastructure management.",
+      "highlights": [
+        "Led C2 integration efforts for SOUTHCOM and UNITAS, successfully coordinating communications across 9 partner nations during complex amphibious operations",
+        "Established critical communications infrastructure for NATO operations in Estonia (BALTOPS), ensuring seamless multinational coordination",
+        "Managed $1.5M enterprise infrastructure portfolio supporting global military exercises with zero mission-critical failures"
+      ],
+      "responsibilities": [
+        "Coordinated multinational communications operations",
+        "Managed enterprise infrastructure portfolio",
+        "Led NATO communications initiatives"
+      ],
+      "achievements": [
+        "Zero mission-critical failures across global exercises",
+        "Successful multinational operations coordination",
+        "Established NATO communications infrastructure"
+      ],
+      "skills": [
+        "International Communications",
+        "Infrastructure Management",
+        "Mobile Device Management",
+        "C2 Systems",
+        "NATO Operations",
+        "Portfolio Management"
+      ]
+    },
+    {
+      "name": "2nd Marine Division",
+      "position": "Tactical Data Systems Administrator",
+      "location_type": "On site",
+      "location": "Camp Lejeune, NC",
+      "startDate": "2005-03-01",
+      "endDate": "2009-07-01",
+      "summary": "Managed mission-critical systems and communications infrastructure.",
+      "highlights": [
+        "Integrated and maintained 8+ mission-critical systems for RCT Command Post infrastructure, ensuring 99.9% uptime",
+        "Engineered robust enterprise communications architecture supporting MEF-level exercises involving thousands of personnel",
+        "Supervised operational continuity across multiple Battalion Operations Centers in high-tempo environments"
+      ],
+      "responsibilities": [
+        "Maintained mission-critical systems",
+        "Engineered communications architecture",
+        "Supervised Battalion Operations Centers"
+      ],
+      "achievements": [
+        "99.9% uptime for mission-critical systems",
+        "Successful MEF-level exercise support",
+        "Maintained operational continuity in high-tempo environments"
+      ],
+      "skills": [
+        "Tactical Data Systems",
+        "Enterprise Communications",
+        "System Integration",
+        "Infrastructure Management",
+        "Operations Center Management",
+        "High Availability Systems"
+      ]
+    }
+  ],
+  "volunteer": [
+    {
+      "organization": "Kids Reading to Succeed (KRS)",
+      "position": "Volunteer Reading Mentor",
+      "url": "http://www.kidsreadingtosucceed.org",
+      "startDate": "2009-01-01",
+      "endDate": "2012-01-01",
+      "summary": "Participated in monthly reading programs to empower at-risk youth in Pasadena through literacy education.",
+      "highlights": [
+        "Mentored elementary school students (grades 1-6) in reading comprehension and analytical skills",
+        "Participated in monthly Saturday reading programs at Villa 500 community center",
+        "Helped develop students' literacy skills while fostering a love of reading"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "University of Maryland University College",
+      "url": "https://www.umgc.edu",
+      "area": "Computer and Information Technology",
+      "studyType": "Bachelor of Science",
+      "startDate": "2008-07-01",
+      "endDate": "2012-07-01",
+      "score": "",
+      "courses": []
+    }
+  ],
+  "certificates": [
+    {
+      "name": "Certified Information Systems Security Professional (CISSP)",
+      "date": "2017-12-01",
+      "issuer": "ISC²",
+      "url": "https://www.isc2.org/Certifications/CISSP"
+    }
+  ],
+  "skills": [
+    {
+      "name": "Figma",
+      "level": "Expert",
+      "keywords": [
+        "Design",
+        "UI"
+      ]
+    },
+    {
+      "name": "Gitlab",
+      "level": "Intermediate",
+      "keywords": [
+        "Version Control",
+        "Collaboration",
+        "Source Code"
+      ]
+    },
+    {
+      "name": "HTML",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend"
+      ]
+    },
+    {
+      "name": "CSS",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "Responsive Design"
+      ]
+    },
+    {
+      "name": "JavaScript",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "Backend",
+        "Fullstack"
+      ]
+    },
+    {
+      "name": "Tailwind",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "CSS Framework",
+        "Responsive Design"
+      ]
+    },
+    {
+      "name": "TypeScript",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "Backend",
+        "JavaScript Superset"
+      ]
+    },
+    {
+      "name": "Node",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Backend",
+        "JavaScript",
+        "Server"
+      ]
+    },
+    {
+      "name": "MySQL",
+      "level": "Intermediate",
+      "keywords": [
+        "Databases",
+        "SQL",
+        "Data Storage",
+        "Backend"
+      ]
+    },
+    {
+      "name": "Git",
+      "level": "Intermediate",
+      "keywords": [
+        "Version Control",
+        "Collaboration",
+        "Source Code"
+      ]
+    },
+    {
+      "name": "GitHub",
+      "level": "Intermediate",
+      "keywords": [
+        "Version Control",
+        "Collaboration",
+        "Source Code",
+        "Git"
+      ]
+    },
+    {
+      "name": "Next.js",
+      "level": "Beginner",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "React",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "JavaScript Library",
+        "UI"
+      ]
+    }
+  ],
+  "languages": [
+    {
+      "language": "English",
+      "fluency": "Native speaker"
+    },
+    {
+      "language": "Spanish",
+      "fluency": "Intermediate"
+    }
+  ],
+  "interests": [
+    {
+      "name": "Technology",
+      "keywords": [
+        "AI",
+        "Blockchain"
+      ]
+    }
+  ],
+  "references": [
+    {
+      "name": "Jane Smith",
+      "reference": "Reference…"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Personal Portfolio",
+      "isActive": false,
+      "description": "A personal portfolio website to showcase my projects and skills.",
+      "highlights": [
+        "Built with React and Tailwind CSS",
+        "Includes a blog and contact form"
+      ],
+      "url": "https://johndoe.dev",
+      "github": "https://github.com"
+    },
+    {
+      "name": "Weather App",
+      "isActive": true,
+      "description": "A web application that provides weather information for any location.",
+      "highlights": [
+        "Built with JavaScript and OpenWeatherMap API",
+        "Responsive design"
+      ],
+      "url": "https://weatherapp.com"
+    },
+    {
+      "name": "Task Manager",
+      "isActive": true,
+      "description": "A simple task management app to keep track of daily tasks.",
+      "highlights": [
+        "Built with Node.js and MongoDB",
+        "User authentication and CRUD operations"
+      ],
+      "url": "https://taskmanager.com",
+      "github": "https://github.com"
+    },
+    {
+      "name": "E-commerce Site",
+      "isActive": false,
+      "description": "An online store built with Next.js and Stripe for payment processing.",
+      "highlights": [
+        "Product management and shopping cart functionality",
+        "Secure payment integration"
+      ],
+      "url": "https://ecommerce.com"
+    }
+  ]
+}

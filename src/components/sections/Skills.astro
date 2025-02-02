@@ -1,0 +1,34 @@
+---
+import Section from "../Section.astro";
+import SecurityTech from "@/icons/SecurityTech.astro";
+import SecurityFrameworks from "@/icons/SecurityFrameworks.astro";
+import CloudAutomation from "@/icons/CloudAutomation.astro";
+import Programming from "@/icons/Programming.astro";
+import AIML from "@/icons/AIML.astro";
+import SoftwareDev from "@/icons/SoftwareDev.astro";
+import ProjectMgmt from "@/icons/ProjectMgmt.astro";
+import PersonnelMgmt from "@/icons/PersonnelMgmt.astro";
+
+const SKILLS_ICONS: Record<string, any> = {
+	"Security Technologies": SecurityTech,
+	"Security Frameworks": SecurityFrameworks,
+	"Cloud & Automation": CloudAutomation,
+	"Programming & Scripting": Programming,
+	"AI/ML": AIML,
+	"Software Development": SoftwareDev,
+	"Project Management": ProjectMgmt,
+	"Personnel Management": PersonnelMgmt,
+};
+---
+
+<Section className={Astro.props.className} title="Skills">
+	<ul class="[&>li>svg]:text-skin-hue inline-flex flex-wrap gap-6 [&>li>svg]:size-5 [&>li]:text-sm">
+		{
+			Object.entries(SKILLS_ICONS).map(([name, Icon]) => (
+				<li class="border-skin-hue/20s bg-skin-button-accent/20s borders border-solids flex items-center gap-1 rounded-md px-2 py-0.5 text-xs text-skin-muted print:border-none print:bg-transparent print:p-0 print:text-zinc-800">
+					{Icon && <Icon />} <span>{name}</span>
+				</li>
+			))
+		}
+	</ul>
+</Section>
