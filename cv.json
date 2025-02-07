@@ -50,6 +50,7 @@
         "Designed and coordinated authority to operate for hybrid cloud environmental intelligence integrations for enhanced battlefield visualization"
       ],
       "skills": [
+        "Stakeholder Engagement",
         "Azure",
         "Python",
         "Powershell",
@@ -82,6 +83,9 @@
         "Contributed to successful demonstration of joint force capabilities across U.S., U.K., and Australian forces, supporting multi-domain operations"
       ],
       "skills": [
+        "Pipeline Development",
+        "Idea Advocacy",
+        "Mission Alignment",
         "Python",
         "ACAS",
         "Unified Communications",
@@ -98,22 +102,24 @@
       "location": "MCAGCC, Twentynine Palms",
       "startDate": "2019-08-01",
       "endDate": "2022-06-01",
-      "summary": "Led IT portfolio management and educational technology transformation initiatives.",
+      "summary": "Led IT portfolio management, IT personnel development, and educational technology transformation initiatives.",
       "highlights": [
-        "Directed $9M+ annual IT portfolio program, achieving and maintaining 100% NIST/CNSS compliance while modernizing systems",
-        "Led and mentored diverse team of 10 Marines, 3 senior GS employees, and 3 contractors across technical disciplines",
-        "Transformed educational delivery through comprehensive redesign of campus architecture and business strategy, revolutionizing classroom connectivity"
-      ],
+    "Managed $9M+ annual IT portfolio program, ensuring regulatory compliance and driving continuous modernization efforts.",
+    "Lead and mentored a diverse team of 10 Marines, 3 senior GS employees, and 3 contractors, fostering technical proficiency and professional development.",
+    "Transformed educational delivery through comprehensive redesign of campus wireless architecture and business strategy, significantly enhancing accessibility and connectivity.",
+    "Directed $27M in technology modernization initiatives over three years, expanding network infrastructure and increasing educational accessibility by 40% for over 30,000 students."
+  ],
       "responsibilities": [
-        "Managed comprehensive IT portfolio and compliance programs",
-        "Led cross-functional team of military, civilian, and contractor personnel",
-        "Oversaw campus-wide technology modernization initiatives"
-      ],
+    "Oversee comprehensive IT portfolio and compliance programs, aligning technical initiatives with mission objectives.",
+    "Lead cross-functional teams of military, civilian, and contractor personnel, ensuring seamless collaboration and execution of strategic initiatives.",
+    "Implement large-scale infrastructure improvements to enhance cybersecurity, connectivity, and operational efficiency."
+  ],
       "achievements": [
-        "Achieved 100% NIST/CNSS compliance across all systems",
-        "Successfully modernized educational delivery infrastructure",
-        "Optimized $9M+ annual budget utilization"
-      ],
+    "Achieved 100% NIST/CNSS compliance across all systems, strengthening cybersecurity and regulatory adherence.",
+    "Led and developed a high-performing team, fostering professional growth, securing performance-based incentives, and driving operational excellence.",
+    "Provided mentorship and strategic guidance that empowered new team members to take ownership of critical programs, improving compliance and earning organizational recognition.",
+    "Optimized $9M+ annual budget utilization, ensuring efficient allocation of resources and maximizing impact."
+  ],
       "skills": [
         "IT Portfolio Management",
         "Team Leadership",
@@ -128,7 +134,11 @@
         "DCPDS",
         "TWMS",
         "FAR Compliance",
+        "Quality Step Increase Processing",
+        "Position Description Development",
+        "Performance Improvement Plan Development",
         "Davis-Bacon Act",
+        "Douglas Factors Administration",
         "OSHA Standards",
         "Federal Contracting",
         "DoD Infrastructure Procurement"
@@ -141,30 +151,41 @@
       "location": "Kuwait, Bahrain, Iraq",
       "startDate": "2017-06-01",
       "endDate": "2019-06-01",
-      "summary": "Led multi-site cybersecurity operations in forward-deployed environments.",
-      "highlights": [
-        "Directed complex multi-site cybersecurity operations across hostile territories, maintaining zero security compromises",
-        "Engineered and implemented advanced threat detection systems and data loss prevention tools",
-        "Achieved 100% mission success rate in protecting critical operational data through innovative security architectures"
-      ],
-      "responsibilities": [
-        "Managed cybersecurity operations across multiple forward operating bases",
-        "Implemented and maintained advanced security systems",
-        "Coordinated threat response and prevention strategies"
-      ],
-      "achievements": [
-        "Maintained zero security compromises in hostile territory",
-        "Successfully protected mission-critical operational data",
-        "Developed innovative security architectures for forward-deployed environments"
-      ],
-      "skills": [
-        "Cybersecurity Operations",
-        "Threat Detection",
-        "Data Loss Prevention",
-        "Security Architecture",
-        "Multi-site Operations",
-        "Forward-Deployed Systems"
-      ]
+      "summary": "Led multi-site cybersecurity operations in forward-deployed environments, collaborating with intelligence stakeholders to develop security policies and manage incident responses, ensuring the protection of Top Secret/Sensitive Compartmented Information (TS/SCI) and safeguarding mission-critical data and personnel.",
+ 
+  "highlights": [
+    "Directed complex multi-site cybersecurity operations, maintaining zero security compromises in high-risk areas.",
+    "Developed and implemented comprehensive cybersecurity policies to enhance compliance and mitigate risks.",
+    "Engineered advanced threat detection systems and data loss prevention tools, ensuring real-time response to emerging threats.",
+    "Led incident response operations for security breaches and classified data spillages, preventing potential threats to mission success and personnel safety."
+  ],
+  "responsibilities": [
+    "Manage cybersecurity operations across multiple forward operating bases, ensuring continuous protection of mission-critical assets.",
+    "Develop and enforce cybersecurity policies to maintain compliance and operational security standards.",
+    "Implement and maintain advanced security systems to detect, mitigate, and respond to cyber threats.",
+    "Lead incident response efforts for security breaches and classified data spillages, minimizing operational risks and ensuring rapid containment."
+  ],
+  "achievements": [
+    "Maintained zero security compromises in high-threat environments through proactive security measures.",
+    "Safeguarded mission-critical data and communications by implementing robust security architectures.",
+    "Developed and enforced cybersecurity policies, enhancing compliance and reducing vulnerabilities.",
+    "Led rapid incident response for classified data spillages, preventing potential threats to mission success and personnel safety."
+  ],
+  "skills": [
+    "Cybersecurity Operations",
+    "Threat Detection",
+    "Data Loss Prevention",
+    "Security Architecture",
+    "Multi-site Operations",
+    "Forward-Deployed Systems",
+    "Stakeholder Engagement",
+    "Incident Response",
+    "Policy Development",
+    "McAfee ePolicy Orchestrator (ePO)",
+    "Assured Compliance Assessment Solution (ACAS)",
+    "Sysmon",
+    "Process Monitor (Procmon)"
+  ]
     },
     {
       "name": "1st Marine Logistics Group",
@@ -207,21 +228,22 @@
       "location": "Twentynine Palms, CA",
       "startDate": "2012-10-01",
       "endDate": "2015-10-01",
-      "summary": "Led development and delivery of DoD-aligned cybersecurity curriculum and technical instruction.",
+      "summary": "Delivered over 1,200 hours of technical instruction to military personnel, honing expertise in public speaking and adapting complex concepts to diverse audiences.",
       "highlights": [
         "Developed comprehensive DoD-aligned cybersecurity curriculum, incorporating emerging threats and defense strategies",
         "Delivered advanced technical instruction to 200+ students in enterprise security tools, vulnerability management, and network defense",
         "Established rigorous evaluation frameworks ensuring training materials maintain relevance against sophisticated cyber threats and align with DoD cybersecurity requirements"
+        
       ],
       "responsibilities": [
-        "Developed and maintained cybersecurity curriculum",
-        "Provided technical instruction in enterprise security",
-        "Created and implemented training evaluation frameworks"
+        "Develop and maintain cybersecurity curriculum",
+        "Provide technical instruction in enterprise security",
+        "Create and implement training evaluation frameworks"
       ],
       "achievements": [
-        "Successfully trained 200+ cybersecurity professionals",
-        "Established DoD-aligned curriculum standards",
-        "Modernized training materials for emerging threats"
+        "Led strategic learning analysis and high-level planning needed for evolving technologies and USMC integration with Joint partners in Cyberspace Operations. Efforts were leveraged toward the successful transition to the 1721 Cyberspace Warfare Operator Military Occupational Specialty (MOS).", 
+        "Collaborated with intelligence stakeholders to develop and implement comprehensive cybersecurity training programs aligned with Department of Defense (DoD) standards.",
+        "Modernized training materials to address emerging threats, incorporating the latest cybersecurity strategies and technologies."
       ],
       "skills": [
         "Curriculum Development",
@@ -248,9 +270,9 @@
         "Managed $1.5M enterprise infrastructure portfolio supporting global military exercises with zero mission-critical failures"
       ],
       "responsibilities": [
-        "Coordinated multinational communications operations",
-        "Managed enterprise infrastructure portfolio",
-        "Led NATO communications initiatives"
+        "Coordinate multinational communications operations",
+        "Manage enterprise infrastructure portfolio",
+        "Lead NATO communications initiatives"
       ],
       "achievements": [
         "Zero mission-critical failures across global exercises",
@@ -280,9 +302,9 @@
         "Supervised operational continuity across multiple Battalion Operations Centers in high-tempo environments"
       ],
       "responsibilities": [
-        "Maintained mission-critical systems",
-        "Engineered communications architecture",
-        "Supervised Battalion Operations Centers"
+        "Maintain mission-critical systems",
+        "Engineer communications architecture",
+        "Supervise installation, operation, and maintenance of Battalion Operations Centers"
       ],
       "achievements": [
         "99.9% uptime for mission-critical systems",
