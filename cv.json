@@ -509,6 +509,19 @@
   ],
   "projects": [
     {
+      "name": "MongoFlow",
+      "isActive": true,
+      "description": "A production-ready, fully automated CI/CD pipeline that integrates MongoDB Atlas with Infrastructure as Code (IaC) and DevSecOps best practices.",
+      "highlights": [
+        "Built with Terraform, AWS CloudFormation, Python, Go, and JavaScript",
+        "Implements DevSecOps best practices with Snyk and Checkov security scanning",
+        "Automates MongoDB Atlas provisioning and deployment",
+        "Features polyglot microservices architecture"
+      ],
+      "url": "https://shanetrimbur.github.io/MongoFlow",
+      "github": "https://github.com/shanetrimbur/MongoFlow"
+    },
+    {
       "name": "Personal Portfolio",
       "isActive": false,
       "description": "A personal portfolio website to showcase my projects and skills.",
