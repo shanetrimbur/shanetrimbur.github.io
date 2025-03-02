@@ -509,46 +509,75 @@
   ],
   "projects": [
     {
-      "name": "Personal Portfolio",
-      "isActive": false,
-      "description": "A personal portfolio website to showcase my projects and skills.",
-      "highlights": [
-        "Built with React and Tailwind CSS",
-        "Includes a blog and contact form"
-      ],
-      "url": "https://johndoe.dev",
-      "github": "https://github.com"
-    },
-    {
-      "name": "Weather App",
+      "name": "MongoFlow",
       "isActive": true,
-      "description": "A web application that provides weather information for any location.",
+      "description": "A production-ready CI/CD pipeline that integrates MongoDB Atlas with Infrastructure as Code (IaC) and DevSecOps best practices. Enables secure, scalable cloud-native applications while minimizing operational overhead.",
       "highlights": [
-        "Built with JavaScript and OpenWeatherMap API",
-        "Responsive design"
+        "Automated MongoDB Atlas provisioning via Terraform",
+        "Implemented CI/CD using GitHub Actions",
+        "Integrated security scanning (Snyk, Checkov)",
+        "Built polyglot microservices architecture (Python, Go)",
+        "Deployed serverless infrastructure on AWS",
+        "Implemented Zero Trust security model"
       ],
-      "url": "https://weatherapp.com"
+      "url": "https://github.com/shanetrimbur/MongoFlow",
+      "github": "https://github.com/shanetrimbur/MongoFlow"
     },
     {
-      "name": "Task Manager",
+      "name": "Cisco Router Automation",
       "isActive": true,
-      "description": "A simple task management app to keep track of daily tasks.",
+      "description": "Ansible automation for configuring and hardening Cisco IR1835 Industrial Routers, designed for industrial and edge computing environments where reliability and security are critical.",
       "highlights": [
-        "Built with Node.js and MongoDB",
-        "User authentication and CRUD operations"
+        "Developed Ansible playbooks for automated router configuration",
+        "Implemented security hardening best practices",
+        "Created execution environment using Red Hat containers",
+        "Built comprehensive fact gathering and validation system",
+        "Integrated with enterprise monitoring tools"
       ],
-      "url": "https://taskmanager.com",
-      "github": "https://github.com"
+      "url": "https://github.com/shanetrimbur/ansibletest",
+      "github": "https://github.com/shanetrimbur/ansibletest"
     },
     {
-      "name": "E-commerce Site",
-      "isActive": false,
-      "description": "An online store built with Next.js and Stripe for payment processing.",
+      "name": "Security Tools Collection",
+      "isActive": true,
+      "description": "A comprehensive collection of security-focused utilities and scripts designed to streamline and automate common security tasks and assessments.",
       "highlights": [
-        "Product management and shopping cart functionality",
-        "Secure payment integration"
+        "Developed Nessus to POAM converter for compliance reporting",
+        "Automated vulnerability assessment workflows",
+        "Integrated with enterprise security tools",
+        "Built PowerShell modules for security automation",
+        "Implemented professional Excel report generation"
       ],
-      "url": "https://ecommerce.com"
+      "url": "https://github.com/shanetrimbur/security-tools",
+      "github": "https://github.com/shanetrimbur/security-tools"
+    },
+    {
+      "name": "Weather Data Aggregator",
+      "isActive": true,
+      "description": "Full-stack application designed to scrape weather data (METAR reports), store it in Azure Blob Storage, and index it in Elasticsearch for analysis with Kibana.",
+      "highlights": [
+        "Built Python scraper for weather data collection",
+        "Implemented Node.js backend API",
+        "Integrated Elasticsearch and Kibana for data analysis",
+        "Deployed on Azure cloud infrastructure",
+        "Created modular and extensible architecture"
+      ],
+      "url": "https://github.com/shanetrimbur/weatherapp2",
+      "github": "https://github.com/shanetrimbur/weatherapp2"
+    },
+    {
+      "name": "ATC Monitoring Service",
+      "isActive": true,
+      "description": "Serverless AWS Lambda-based service for monitoring and processing air traffic control audio files, including fetching, transcribing, and analyzing audio communications.",
+      "highlights": [
+        "Developed serverless architecture using AWS Lambda",
+        "Implemented audio processing pipeline",
+        "Created S3-based storage solution",
+        "Built SQS notification system",
+        "Integrated with AWS transcription services"
+      ],
+      "url": "https://github.com/shanetrimbur/atc-monitoring-service",
+      "github": "https://github.com/shanetrimbur/atc-monitoring-service"
     }
   ]
 }
