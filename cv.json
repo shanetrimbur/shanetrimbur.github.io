@@ -39,15 +39,13 @@
       "endDate": null,
       "summary": "Leading enterprise cloud adoption and data fusion initiatives for MARFORPAC and 3rd MAW.",
       "highlights": [
-        "Spearheaded enterprise cloud adoption initiative impacting MARFORPAC and 3rd MAW",
-        "Pioneered innovative Azure-based data fusion system",
-        "Established advanced JADC2 capabilities"
+        "Faced with outdated cloud infrastructure that hindered global operations, I spearheaded an enterprise cloud adoption initiative impacting MARFORPAC and 3rd MAW. By implementing a cutting-edge multi-cloud architecture through the Joint Warfighting Cloud Capability program, I enhanced DoD mission capabilities."
       ],
       "responsibilities": [
         "Implementing experimental multi-cloud architecture through the Joint Warfighting Cloud Capability program",
         "Integrating Naval Research Labs with partner agencies for real-time environmental intelligence sharing"],
       "achievements": [
-        "Designed and coordinated authority to operate for hybrid cloud environmental intelligence integrations for enhanced battlefield visualization"
+        "Faced with outdated and siloed systems that hindered data driven mission planning, I spearheaded an enterprise cloud adoption initiative impacting MARFORPAC and 3rd MAW. By implementing a cutting-edge multi-cloud architecture through the Joint Warfighting Cloud Capability program, I enhanced DoD mission capabilities."
       ],
       "skills": [
         "Stakeholder Engagement",
@@ -73,14 +71,15 @@
         "Supervised integration of advanced network systems during Project Convergence"
       ],
       "responsibilities": [
+        "Lead systems engineering and transformation initiatives for JADC2 implementation",
+        "Oversee tactical infrastructure modernization for joint force operations",
+        "Direct integration of advanced network systems and emerging technologies",
+        "Manage cross-functional teams and coordinate with multiple stakeholders"
+      ],
+      "achievements": [
         "Led systems engineering activities toward award-winning JADC2 transformation initiative that earned both the 2022 Shea Award and DON IT Excellence Award",
         "Modernized tactical infrastructure supporting 20,000+ joint force personnel, implementing resilient architecture",
         "Supervised integration of advanced network systems during Project Convergence, significantly reducing sensor-to-shooter timelines"
-      ],
-      "achievements": [
-        "Orchestrated integration of 300+ emerging technologies during Project Convergence 22, enhancing Joint/Multinational interoperability and JADC2 capabilities",
-        "Implemented advanced sensor-to-shooter architectures that significantly improved battlefield network integration and command and control capabilities",
-        "Contributed to successful demonstration of joint force capabilities across U.S., U.K., and Australian forces, supporting multi-domain operations"
       ],
       "skills": [
         "Pipeline Development",
@@ -104,22 +103,21 @@
       "endDate": "2022-06-01",
       "summary": "Led IT portfolio management, IT personnel development, and educational technology transformation initiatives.",
       "highlights": [
-    "Managed $9M+ annual IT portfolio program, ensuring regulatory compliance and driving continuous modernization efforts.",
-    "Lead and mentored a diverse team of 10 Marines, 3 senior GS employees, and 3 contractors, fostering technical proficiency and professional development.",
-    "Transformed educational delivery through comprehensive redesign of campus wireless architecture and business strategy, significantly enhancing accessibility and connectivity.",
-    "Directed $27M in technology modernization initiatives over three years, expanding network infrastructure and increasing educational accessibility by 40% for over 30,000 students."
-  ],
+        "Aging IT infrastructure and compliance gaps threatened training requirements needed for Military Occupational Specialty (MOS) certification. I directed a $9M+ portfolio modernization program that achieved and maintained 100% NIST/CNSS compliance while upgrading critical systems.",
+        "Lead and mentored a diverse team of 10 Marines, 3 senior GS employees, and 3 contractors, fostering technical proficiency and professional development.",
+        "Transformed educational delivery through comprehensive redesign of campus wireless architecture and business strategy, significantly enhancing accessibility and connectivity.",
+        "Directed $27M in technology modernization initiatives over three years, expanding network infrastructure and increasing educational accessibility by 40% for over 30,000 students."
+      ],
       "responsibilities": [
-    "Oversee comprehensive IT portfolio and compliance programs, aligning technical initiatives with mission objectives.",
-    "Lead cross-functional teams of military, civilian, and contractor personnel, ensuring seamless collaboration and execution of strategic initiatives.",
-    "Implement large-scale infrastructure improvements to enhance cybersecurity, connectivity, and operational efficiency."
-  ],
+        "Oversee comprehensive IT portfolio and compliance programs, aligning technical initiatives with mission objectives.",
+        "Lead cross-functional teams of military, civilian, and contractor personnel, ensuring seamless collaboration and execution of strategic initiatives.",
+        "Implement large-scale infrastructure improvements to enhance cybersecurity, connectivity, and operational efficiency."
+      ],
       "achievements": [
-    "Achieved 100% NIST/CNSS compliance across all systems, strengthening cybersecurity and regulatory adherence.",
-    "Led and developed a high-performing team, fostering professional growth, securing performance-based incentives, and driving operational excellence.",
-    "Provided mentorship and strategic guidance that empowered new team members to take ownership of critical programs, improving compliance and earning organizational recognition.",
-    "Optimized $9M+ annual budget utilization, ensuring efficient allocation of resources and maximizing impact."
-  ],
+        "Aging IT infrastructure and compliance gaps threatened training requirements needed for Military Occupational Specialty (MOS) certification. I directed a $9M+ portfolio modernization program that achieved and maintained 100% NIST/CNSS compliance while upgrading critical systems.",
+        "Contracting and installation of comprehensive Campus WiFi and network infrastructure was a complex undertaking that required coordinated leadership across diverse teams. I led and mentored an integrated team of 10 Marines, 3 senior GS employees, and 3 contractors, resulting in improved cross-functional collaboration and technical delivery. I also coordinated all aspects of the project, including design, installation, and integration of the new infrastructure.",
+        "Inconsistent and rigidly defined performance standards hindered team development and mission execution. I designed and implemented a comprehensive performance management system that standardized evaluations and enhanced professional development for both civilian and military personnel."
+      ],
       "skills": [
         "IT Portfolio Management",
         "Team Leadership",
@@ -166,10 +164,10 @@
     "Lead incident response efforts for security breaches and classified data spillages, minimizing operational risks and ensuring rapid containment."
   ],
   "achievements": [
-    "Maintained zero security compromises in high-threat environments through proactive security measures.",
-    "Safeguarded mission-critical data and communications by implementing robust security architectures.",
-    "Developed and enforced cybersecurity policies, enhancing compliance and reducing vulnerabilities.",
-    "Led rapid incident response for classified data spillages, preventing potential threats to mission success and personnel safety."
+
+    "As the principal action officer for security incidents, I led the response to frequent data spillages and security breaches threatening our mission-critical information. I coordinated comprehensive investigations with local system administrators and network contractors, meticulously documenting findings to satisfy reporting requirements across MARCENT, CENTCOM, and Headquarters Marine Corps. Recognizing the need for a proactive approach, I authored and implemented enhanced security policies that maintained tactical flexibility while ensuring robust data protection. This strategic intervention eliminated all further security incidents for the duration of my deployment, safeguarding operational integrity in a high-stakes environment.",
+    "Hostile environments and distributed operations posed critical security risks. I directed complex multi-site cybersecurity operations across three countries, achieving zero security compromises throughout deployment.",
+    "Advanced persistent threats required enhanced detection capabilities. I engineered and implemented sophisticated threat detection systems and data loss prevention tools, resulting in 100% threat identification and mitigation."
   ],
   "skills": [
     "Cybersecurity Operations",
@@ -201,14 +199,14 @@
         "Collaborated with Johns Hopkins Applied Physics Laboratory to evaluate advanced network behavior analytics and anomaly detection systems"
       ],
       "responsibilities": [
-        "Led joint cybersecurity operations with Navy partners",
-        "Implemented and managed advanced network monitoring systems",
-        "Evaluated and deployed cutting-edge security analytics solutions"
+        "Lead joint cybersecurity operations with Navy partners",
+        "Implement and manage advanced network monitoring systems",
+        "Evaluate and deploy cutting-edge security analytics solutions"
       ],
       "achievements": [
-        "Successfully implemented Security Onion enterprise monitoring suite",
-        "Enhanced threat detection through advanced Zeek deployment",
-        "Established research partnership with Johns Hopkins APL"
+        "Limited network visibility hampered threat detection capabilities. I coordinated with USN Cyber Protection Team to implement Security Onion suite, dramatically enhancing network monitoring effectiveness.",
+        "Complex network traffic patterns obscured potential threats. I deployed Zeek for sophisticated deep packet inspection, enabling real-time threat detection and significantly improving security posture.",
+        "Traditional security tools struggled with emerging threats. I partnered with Johns Hopkins APL to evaluate and implement advanced network behavior analytics, revolutionizing our anomaly detection capabilities."
       ],
       "skills": [
         "Security Onion",
@@ -241,9 +239,9 @@
         "Create and implement training evaluation frameworks"
       ],
       "achievements": [
-        "Led strategic learning analysis and high-level planning needed for evolving technologies and USMC integration with Joint partners in Cyberspace Operations. Efforts were leveraged toward the successful transition to the 1721 Cyberspace Warfare Operator Military Occupational Specialty (MOS).", 
-        "Collaborated with intelligence stakeholders to develop and implement comprehensive cybersecurity training programs aligned with Department of Defense (DoD) standards.",
-        "Modernized training materials to address emerging threats, incorporating the latest cybersecurity strategies and technologies."
+        "Faced with an outdated curriculum that failed to address emerging cyber threats, I was tasked with overhauling the training program. I Developed a comprehensive, DoD-aligned cybersecurity curriculum integrating emerging threats and modern defense strategies. This enhanced training effectiveness and improved cyber workforce production.", 
+        "With 200+ students needing advanced skills in cybersecurity, I was responsible for elevating their technical proficiency. I delivered in-depth instruction on enterprise security tools, vulnerability management, and network defense. These efforts significantly increased student competency and preparedness for real-world challenges.",
+        "Recognizing that rapid cyber threat evolution rendered training materials obsolete, I was assigned to ensure curriculum modernization. I chaired course content review boards to systematically update and align materials with current cyber threats. This maintained curriculum relevance and boosted overall training efficacy."
       ],
       "skills": [
         "Curriculum Development",
@@ -275,9 +273,9 @@
         "Lead NATO communications initiatives"
       ],
       "achievements": [
-        "Zero mission-critical failures across global exercises",
-        "Successful multinational operations coordination",
-        "Established NATO communications infrastructure"
+        "During the UNITAS multinational exercise, I encountered severe communication barriers threatening coordinated operations across 9 partner nations. Tasked with enabling seamless C2 integration, I methodically analyzed each system's compatibility issues and developed a comprehensive integration framework. By systematically implementing cross-platform solutions and establishing standardized protocols, I transformed the previously fragmented systems into a cohesive network. This integration enabled flawless coordination throughout complex amphibious operations, significantly enhancing multinational interoperability and establishing a new standard for future joint exercises.",
+        "When confronted with critical NATO communication vulnerabilities in Estonia during BALTOPS preparations, I recognized the urgent need for a robust infrastructure to support allied operations. I conducted a thorough assessment of existing tactical systems and identified key integration points to create a unified communication network. Through careful implementation of compatibility solutions and redundant pathways, I converted these disconnected systems into a seamless communication infrastructure. The resulting network eliminated previous vulnerabilities and ensured uninterrupted multinational coordination throughout the exercise, strengthening NATO's operational capabilities in this strategically significant region.",
+        "Upon inheriting a troubled $1.5M enterprise infrastructure portfolio supporting global military exercises, I discovered numerous critical vulnerabilities threatening mission success. I immediately initiated a comprehensive risk assessment to identify failure points and developed a strategic revitalization plan. By implementing systematic maintenance protocols, building in redundancy systems, and training support personnel, I transformed the reliability of these essential systems. My proactive approach eliminated all previous failure patterns and achieved zero mission-critical outages across operations worldwide, ensuring continuous support for vital military exercises and protecting this significant organizational investment."
       ],
       "skills": [
         "International Communications",
@@ -307,9 +305,9 @@
         "Supervise installation, operation, and maintenance of Battalion Operations Centers"
       ],
       "achievements": [
-        "99.9% uptime for mission-critical systems",
-        "Successful MEF-level exercise support",
-        "Maintained operational continuity in high-tempo environments"
+        "Faced with maintenance, equipment shortfalls, and reliability challenges in the Combat Operations Centers throughout the division, I integrated and maintained 8+ mission-critical systems, achieving a 99.9% uptime and ensuring dependable operational performance.",
+        "Confronted with communication gaps during large-scale MEF-level exercises, I engineered a resilient enterprise communications architecture that seamlessly supported thousands of personnel.",
+        "When high-tempo environments threatened operational continuity, I supervised and coordinated multiple Battalion Operations Centers, ensuring uninterrupted command and control during critical missions."
       ],
       "skills": [
         "Tactical Data Systems",
