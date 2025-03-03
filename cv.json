@@ -509,6 +509,21 @@
   ],
   "projects": [
     {
+      "name": "TrimburTech Cybersecurity Platform",
+      "isActive": true,
+      "description": "Enterprise cybersecurity platform offering comprehensive security solutions including zero trust architecture, cloud security, network engineering, and security operations. Features advanced monitoring systems and AI-powered analytics for proactive threat detection.",
+      "highlights": [
+        "Implemented Zero Trust security framework with strict identity verification",
+        "Developed cloud security architecture for AWS, Azure, and GCP",
+        "Built enterprise network design focusing on security and performance",
+        "Created 24/7 SOC monitoring and incident response system",
+        "Integrated compliance frameworks (HIPAA, PCI, SOC2, GDPR)",
+        "Deployed AI-powered security analytics for threat detection"
+      ],
+      "url": "https://www.trimburtech.com/",
+      "github": "https://github.com/shanetrimbur/cyber"
+    },
+    {
       "name": "MongoFlow",
       "isActive": true,
       "description": "A production-ready CI/CD pipeline that integrates MongoDB Atlas with Infrastructure as Code (IaC) and DevSecOps best practices. Enables secure, scalable cloud-native applications while minimizing operational overhead.",

@@ -26,8 +26,8 @@ import { projects } from "@cv";
 								<div class="flex items-center gap-[6px]">
 									<a 
 										class="text-indigo-300 hover:text-indigo-200 group flex items-center gap-[6px] text-lg font-semibold decoration-dotted underline-offset-[5px] hover:underline" 
-										href={github || url} 
-										title={`View ${name} on GitHub`} 
+										href={url.startsWith('http') ? url : github} 
+										title={`View ${name} ${url.startsWith('http') ? 'website' : 'on GitHub'}`} 
 										target="_blank"
 									>
 										{name}
