@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Procedural Iris · Hand Control</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: an instrument bench — live WebGL eye (sticky on phones) beside a dense, searchable control rack. Deliberately single dark look, like a dim exam room. */
+:root {
+  --bg: #0b0d0e;
+  --panel: #121618;
+  --line: #232a2d;
+  --fg: #e4e8e6;
+  --muted: #869390;
+  --accent: #7fb7a8;
+  --bad: #e0806f;
+  --display: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--display);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px; box-sizing: border-box;
+}
+[hidden] { display: none !important; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.app { display: grid; gap: 14px; max-width: 1320px; margin: 0 auto; }
+.stage { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; height: 46vh; min-height: 260px;
+  border-radius: 14px; overflow: hidden; background: #050606; border: 1px solid var(--line); }
+@media (min-width: 900px) {
+  html, body { height: 100%; }
+  body { overflow: hidden; }
+  .app { height: 100%; grid-template-columns: minmax(0, 1fr) 380px; }
+  .stage { position: relative; top: 0; height: auto; }
+  .bench { overflow-y: auto; padding-right: 4px; }
+}
+canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+canvas:active { cursor: grabbing; }
+.hint { position: absolute; left: 12px; bottom: 10px; font: 11px/1.4 var(--mono); color: var(--muted); pointer-events: none; }
+.err { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
+.bench { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding-bottom: 24px; }
+h1 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+.sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: 600 12.5px var(--display); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; cursor: pointer; }
+button:hover { border-color: #3a4549; }
+button[aria-pressed=true] { border-color: var(--accent); color: var(--accent); }
+button.primary { background: var(--accent); color: #0b0d0e; border-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.search { width: 100%; box-sizing: border-box; font: 13px var(--display); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
+details { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+summary { cursor: pointer; padding: 11px 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary .count { font: 500 11px var(--mono); letter-spacing: 0; color: #5f6b68; }
+details[open] summary { color: var(--fg); border-bottom: 1px solid var(--line); }
+.grp { padding: 10px 12px 12px; display: grid; gap: 11px; }
+.prm { display: grid; grid-template-columns: minmax(0, 1fr) 74px; gap: 4px 10px; align-items: center; }
+.prm label { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; }
+.prm label code { font: 10.5px var(--mono); color: #5f6b68; }
+.prm input[type=range] { width: 100%; accent-color: var(--accent); margin: 0; }
+.prm input[type=number] { width: 100%; box-sizing: border-box; font: 12px var(--mono); color: var(--fg); background: #0b0e0f; border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font-variant-numeric: tabular-nums; }
+.grp-reset { justify-self: start; }
+.slot { display: grid; gap: 6px; }
+.slot-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.slot-head b { font-size: 12.5px; }
+.slot-head button { padding: 3px 8px; font-size: 11px; }
+.slot p { margin: 0; font-size: 11.5px; line-height: 1.45; color: var(--muted); }
+.slot p code { font-family: var(--mono); color: #a9b5b2; font-size: 11px; }
+textarea { width: 100%; box-sizing: border-box; min-height: 58px; resize: vertical; font: 11.5px/1.5 var(--mono); color: #d6e6e1; background: #070909; border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; }
+textarea.bad { border-color: var(--bad); }
+.status { font: 11.5px/1.5 var(--mono); color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.status.bad { color: var(--bad); }
+.status.ok { color: var(--accent); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.note { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 0; }
+.gesture { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 12px; display: grid; gap: 10px; }
+.g-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.g-head b { display: block; font-size: 14px; }
+.g-sub { font-size: 11.5px; color: var(--muted); }
+.switch { width: 48px; height: 28px; border-radius: 14px; padding: 0; position: relative; background: #2a3134; border: 1px solid var(--line); flex: none; }
+.switch span { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--muted); transition: transform .15s; }
+.switch[aria-checked=true] { background: var(--accent); border-color: var(--accent); }
+.switch[aria-checked=true] span { transform: translateX(20px); background: #0b0d0e; }
+.cam { position: absolute; top: 10px; right: 10px; width: 104px; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #000; pointer-events: none; }
+.cam video, .cam canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.legend { font-size: 11.5px; color: var(--muted); line-height: 1.65; margin: 0; }
+.legend b { color: var(--fg); font-weight: 600; }
+[hidden] { display: none !important; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <canvas id="c" aria-label="Interactive procedural eye with lids, lashes and brow"></canvas>
+    <div class="hint" id="hint">Drag to move the gaze</div>
+    <div class="cam" id="camBox" hidden><video id="cam" playsinline muted autoplay></video><canvas id="camOverlay"></canvas></div>
+    <div class="err" id="err" hidden>WebGL isn't available in this browser, so the eye can't render.</div>
+  </div>
+
+  <aside class="bench">
+    <div>
+      <h1>Procedural Iris</h1>
+      <p class="sub">Eye, lids, skin, lashes and brow, all computed from formulas. Every variable is a slider; every formula is editable GLSL.</p>
+    </div>
+    <div class="tools">
+      <button id="dragMode" aria-pressed="false">Drag: gaze</button>
+      <button id="sac" aria-pressed="true">Saccades on</button>
+      <button id="blink">Blink</button>
+      <button id="seed">New pattern</button>
+    </div>
+    <section class="gesture" aria-label="Hand control">
+      <div class="g-head">
+        <div><b>Hand control</b><span class="g-sub">Front camera · tracking runs on this device</span></div>
+        <button id="gSwitch" class="switch" role="switch" aria-checked="true" aria-label="Hand control"><span></span></button>
+      </div>
+      <div class="status" id="gStatus" role="status">Hand control starts when the page loads.</div>
+      <div class="row">
+        <button id="camStart" class="primary" hidden>Start camera</button>
+        <button id="gFreeze">Freeze</button>
+        <button id="gLearn" class="primary">Learn pose</button>
+        <button id="gClear">Clear poses</button>
+        <button id="gFollow" aria-pressed="true">Eye follows hand</button>
+      </div>
+      <p class="note" id="gCount"></p>
+      <p class="legend" id="mapLegend"><b>Starter mapping.</b> Right hand: move it and the eye follows · open hand ↔ fist opens and closes the lids · thumb–index pinch sets the pupil · tilt shifts iris color blue → brown · move closer to zoom. Left hand: move it to move the light · open sets lash length · pinch sets fiber count.<br><b>Learn pose:</b> set the sliders to a look, hold a hand pose, tap Learn pose. With two or more learned poses, your hands blend between them and every parameter moves at once.</p>
+    </section>
+    <input class="search" id="filter" type="search" placeholder="Filter parameters (e.g. lash, P_ior, color)" aria-label="Filter parameters">
+    <div id="groups"></div>
+
+    <details id="formulas">
+      <summary>Formulas (operators) <span class="count" id="slotCount"></span></summary>
+      <div class="grp">
+        <p class="note">Each box is one GLSL expression dropped into the shader. Use any <code>P_…</code> uniform shown beside a slider, the locals listed, and helpers <code>pfbm(p, period)</code>, <code>fbm(p)</code>, <code>pnoise(p, period)</code>, <code>voro(p)</code> → vec2(F₁, F₂), <code>hash(p)</code>. Write floats with a decimal point (<code>2.0</code>, not <code>2</code>).</p>
+        <div id="slots" class="grp" style="padding:0"></div>
+        <div class="row">
+          <button class="primary" id="apply">Apply formulas</button>
+          <button id="resetSlots">Reset all formulas</button>
+        </div>
+        <div class="status" id="status" role="status"></div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Presets</summary>
+      <div class="grp">
+        <p class="note">Your settings save in this browser automatically. Copy a preset to keep or share it, or paste one to load it.</p>
+        <div class="row">
+          <button id="copyPreset">Copy preset</button>
+          <button id="loadPreset">Load pasted preset</button>
+          <button id="resetAll">Reset everything</button>
+        </div>
+        <textarea id="presetBox" aria-label="Preset JSON" placeholder="Paste preset JSON here"></textarea>
+        <div class="status" id="presetStatus" role="status"></div>
+      </div>
+    </details>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+'use strict';
+// ------------------------------------------------------------------
+// Parameter registry: [group, id, label, min, max, step, default]
+// Each becomes a float uniform named P_<id>.
+// ------------------------------------------------------------------
+const PARAMS = [
+  ['Lids & blink','open','Openness',0,1.3,0.01,1],
+  ['Lids & blink','lidW','Half-width',0.5,1.05,0.01,0.78],
+  ['Lids & blink','upH','Upper lid height',0.1,0.8,0.01,0.42],
+  ['Lids & blink','upN','Upper lid squareness',1,4,0.05,2.2],
+  ['Lids & blink','upPeak','Upper lid peak shift',-0.6,0.6,0.01,-0.12],
+  ['Lids & blink','loH','Lower lid depth',0.05,0.6,0.01,0.3],
+  ['Lids & blink','loP','Lower lid roundness',0.3,3,0.05,1.2],
+  ['Lids & blink','canthalTilt','Canthal tilt',-0.3,0.3,0.005,0.06],
+  ['Lids & blink','marginW','Wet margin width',0,0.1,0.001,0.03],
+  ['Lids & blink','liner','Lash line darkness',0,1,0.01,0.5],
+  ['Lids & blink','lidShadow','Lid shadow reach',0.01,0.4,0.005,0.16],
+  ['Lids & blink','lidShadowAmt','Lid shadow strength',0,1,0.01,0.65],
+  ['Lids & blink','blinkRate','Blinks per second',0,1,0.01,0.25],
+  ['Lids & blink','lidFollow','Lid follows gaze',0,1,0.01,0.35],
+
+  ['Iris','irisSize','Iris radius',0.4,0.75,0.005,0.581],
+  ['Iris','irisDepth','Recess behind cornea',0,0.15,0.005,0.035],
+  ['Iris','melanin','Melanin',0,1,0.01,0.38],
+  ['Iris','strR','Stroma color red',0,1,0.01,0.28],
+  ['Iris','strG','Stroma color green',0,1,0.01,0.5],
+  ['Iris','strB','Stroma color blue',0,1,0.01,0.62],
+  ['Iris','melR','Melanin color red',0,1,0.01,0.40],
+  ['Iris','melG','Melanin color green',0,1,0.01,0.24],
+  ['Iris','melB','Melanin color blue',0,1,0.01,0.09],
+  ['Iris','irisDark','Base darkness',0,1,0.01,0.5],
+  ['Iris','fibers','Radial fibers',4,200,1,64],
+  ['Iris','fibRadial','Fiber radial frequency',0.5,12,0.1,3],
+  ['Iris','fibW','Fiber weight',0,2,0.01,0.9],
+  ['Iris','fib2W','Fine fiber weight',0,2,0.01,0.5],
+  ['Iris','fibBias','Fiber bias',-1,1,0.01,0.35],
+  ['Iris','cryptScale','Crypt cell scale',2,24,0.1,7],
+  ['Iris','cryptWidth','Furrow width',0.01,0.5,0.005,0.07],
+  ['Iris','cryptDepth','Crypt depth',0,1,0.01,0.45],
+  ['Iris','collarette','Collarette strength',0,1.5,0.01,0.6],
+  ['Iris','collR','Collarette radius',0.3,0.8,0.01,0.5],
+  ['Iris','limbalStart','Limbal ring start',0.5,1,0.01,0.8],
+  ['Iris','limbalDark','Limbal ring floor',0,1,0.01,0.18],
+
+  ['Pupil','pupil','Pupil radius',0.1,0.6,0.005,0.24],
+  ['Pupil','pupilWobble','Edge irregularity',0,0.1,0.001,0.025],
+  ['Pupil','hippus','Hippus amplitude',0,0.03,0.001,0.006],
+  ['Pupil','pupilSpeed','Response speed',0.005,0.3,0.005,0.06],
+
+  ['Cornea & gloss','ior','Index of refraction',1,1.7,0.001,1.376],
+  ['Cornea & gloss','F0','Fresnel F0',0,0.2,0.001,0.025],
+  ['Cornea & gloss','fresPow','Fresnel exponent',1,8,0.1,5],
+  ['Cornea & gloss','specPow','Cornea highlight sharpness',50,2000,10,900],
+  ['Cornea & gloss','specInt','Specular intensity',0,3,0.01,0.8],
+  ['Cornea & gloss','catchlight','Catchlight intensity',0,2,0.01,1],
+  ['Cornea & gloss','catchX','Catchlight X',-1,1,0.01,-0.32],
+  ['Cornea & gloss','catchY','Catchlight Y',-1,1,0.01,0.42],
+  ['Cornea & gloss','catchW','Catchlight width',0.02,0.5,0.005,0.1],
+  ['Cornea & gloss','catchH','Catchlight height',0.02,0.5,0.005,0.07],
+  ['Cornea & gloss','tear','Tear meniscus',0,2,0.01,0.6],
+
+  ['Sclera','veinAmt','Vein strength',0,1,0.01,0.6],
+  ['Sclera','veinWidth','Vein width',0.003,0.1,0.001,0.03],
+  ['Sclera','veinScale','Vein branches',4,64,1,24],
+  ['Sclera','veinStart','Vein start angle',0,2,0.01,0.75],
+  ['Sclera','caruncle','Inner-corner pink',0,1,0.01,0.7],
+
+  ['Skin','skinR','Skin red',0,1,0.01,0.86],
+  ['Skin','skinG','Skin green',0,1,0.01,0.66],
+  ['Skin','skinB','Skin blue',0,1,0.01,0.56],
+  ['Skin','wrap','Light wrap',0,1,0.01,0.45],
+  ['Skin','sss','Subsurface red',0,1.5,0.01,0.6],
+  ['Skin','lidRed','Lid redness',0,1,0.01,0.35],
+  ['Skin','skinSpec','Oil sheen',0,1,0.01,0.22],
+  ['Skin','skinGloss','Sheen tightness',4,200,1,30],
+  ['Skin','poreScale','Pore density',10,240,1,80],
+  ['Skin','poreDepth','Pore depth',0,1,0.01,0.15],
+  ['Skin','wrinkle','Fine lines',0,1,0.01,0.2],
+  ['Skin','domeH','Socket dome height',0.8,1.3,0.005,1.06],
+  ['Skin','domeS','Socket dome spread',0.4,1.5,0.01,0.8],
+  ['Skin','foldH','Lid fold height',0,0.2,0.002,0.07],
+  ['Skin','foldOff','Lid fold offset',0,0.4,0.005,0.14],
+  ['Skin','foldW','Lid fold width',0.02,0.3,0.005,0.09],
+  ['Skin','browRidge','Brow ridge',0,0.4,0.005,0.18],
+
+  ['Lashes','lashCount','Upper lash count',0,300,1,150],
+  ['Lashes','lowerCount','Lower lash count',0,200,1,70],
+  ['Lashes','lashLen','Length',0.05,0.6,0.005,0.28],
+  ['Lashes','lowerScale','Lower length scale',0.1,1,0.01,0.42],
+  ['Lashes','lashLift','Root angle',0,1.6,0.01,0.35],
+  ['Lashes','lashCurl','Curl',0,4,0.01,1.6],
+  ['Lashes','lashThick','Root thickness',0.002,0.03,0.0005,0.009],
+  ['Lashes','lashTaperPow','Corner taper',0.1,3,0.01,0.8],
+  ['Lashes','lashJitter','Length jitter',0,1,0.01,0.4],
+  ['Lashes','lashSplay','Outward splay',0,1,0.01,0.35],
+  ['Lashes','clump','Clumping',0,1,0.01,0.35],
+  ['Lashes','clumpN','Clump count',2,60,1,22],
+  ['Lashes','lashSpan','Span along lid',0.6,1,0.01,0.93],
+  ['Lashes','hairR','Hair color red',0,1,0.005,0.09],
+  ['Lashes','hairG','Hair color green',0,1,0.005,0.065],
+  ['Lashes','hairB','Hair color blue',0,1,0.005,0.05],
+  ['Lashes','hairOpacity','Hair opacity',0,1,0.01,0.92],
+
+  ['Brows','browCount','Hair count',0,1000,1,650],
+  ['Brows','browY','Height',0.8,1.6,0.005,1.18],
+  ['Brows','browArch','Arch',0,0.4,0.005,0.15],
+  ['Brows','browPeakX','Arch peak position',-0.6,0.9,0.01,0.35],
+  ['Brows','browSpan','Half-length',0.6,1.6,0.01,1.12],
+  ['Brows','browThick','Band thickness',0.02,0.3,0.005,0.13],
+  ['Brows','browLen','Hair length',0.03,0.3,0.005,0.11],
+  ['Brows','browInAng','Inner hair angle (rad)',0,3.14,0.01,1.4],
+  ['Brows','browOutAng','Outer hair angle (rad)',-1,1.6,0.01,0.1],
+  ['Brows','browHairW','Hair width',0.002,0.02,0.0005,0.006],
+
+  ['Light & camera','lightX','Light direction X',-1.5,1.5,0.01,-0.5],
+  ['Light & camera','lightY','Light direction Y',-1.5,1.5,0.01,0.6],
+  ['Light & camera','lightZ','Light direction Z',0,1.5,0.01,1],
+  ['Light & camera','ambient','Ambient',0,1,0.01,0.3],
+  ['Light & camera','exposure','Exposure',0.3,4,0.01,1.9],
+  ['Light & camera','camYaw','Camera yaw',-1.2,1.2,0.01,0.15],
+  ['Light & camera','camPitch','Camera pitch',-0.8,0.8,0.01,0.05],
+  ['Light & camera','camDist','Camera distance',2,10,0.05,5.2],
+  ['Light & camera','fov','Field of view',10,60,0.5,30],
+
+  ['Gaze','sacAmp','Saccade amplitude',0,1,0.01,0.6],
+  ['Gaze','sacInterval','Saccade interval (s)',0.2,5,0.05,1.8]
+];
+
+// ------------------------------------------------------------------
+// Formula slots: editable GLSL expressions
+// ------------------------------------------------------------------
+const SLOTS = [
+  ['FIBER','Iris fibers','u (angle 0–1), r (radius 0–1), N1 (fiber count) → float',
+   'pfbm(vec2(u*N1, r*P_fibRadial), N1)'],
+  ['FIBER2','Fine fibers','u, r, N2 (2 × fiber count) → float',
+   'pfbm(vec2(u*N2 + 3.0, r*7.0), N2)'],
+  ['IRIS_MIX','Iris color mix','fib, fib2, base (melanin-mixed vec3), hi (highlight vec3), r → vec3',
+   'mix(base*P_irisDark, hi, clamp(fib*P_fibW + fib2*P_fib2W - P_fibBias, 0.0, 1.0))'],
+  ['CRYPT','Crypt furrows','vo = voro(q) as vec2(F₁, F₂), q (iris-plane position), r → float (1 = furrow)',
+   '(1.0 - smoothstep(0.0, P_cryptWidth, vo.y - vo.x))*smoothstep(0.4, 0.62, fbm(q*5.0))'],
+  ['LIMBAL','Limbal ring','r → brightness multiplier',
+   'mix(1.0, P_limbalDark, smoothstep(P_limbalStart, 1.0, r))'],
+  ['VEIN','Sclera veins','veinN, veinN2 (fbm 0–1), th (angle from front) → float',
+   'smoothstep(P_veinWidth, 0.0, abs(veinN - 0.5)) + 0.5*smoothstep(P_veinWidth*0.66, 0.0, abs(veinN2 - 0.5))'],
+  ['FRESNEL','Fresnel (Schlick)','ndv = dot(normal, view) → float',
+   'P_F0 + (1.0 - P_F0)*pow(1.0 - ndv, P_fresPow)'],
+  ['UPPER_LID','Upper lid curve','x, xs = x/P_lidW, open (blink-adjusted openness) → y',
+   'mix(-0.35*P_loH*pow(max(1.0 - xs*xs, 0.0), P_loP), P_upH*pow(max(1.0 - pow(abs(xs - P_upPeak*(1.0 - xs*xs)), P_upN), 0.0), 1.0/P_upN), open) + P_canthalTilt*x'],
+  ['LOWER_LID','Lower lid curve','x, xs, open → y',
+   '-mix(0.35, 1.0, clamp(open, 0.0, 1.0))*P_loH*pow(max(1.0 - xs*xs, 0.0), P_loP) + P_canthalTilt*x'],
+  ['SKIN_Z','Skin height field','x, y, r = length(x,y), sph (sphere hugging the eye), gau (Gaussian dome), yu (upper lid y) → z',
+   'mix(sph, gau, smoothstep(0.3, 0.9, r)) + P_foldH*exp(-pow((y - yu - P_foldOff)/P_foldW, 2.0))*(1.0 - smoothstep(0.6, 1.1, abs(x))) + P_browRidge*exp(-pow((y - P_browY)/0.25, 2.0))*(1.0 - smoothstep(0.9, 1.8, abs(x)))'],
+  ['SKIN_BUMP','Skin micro-relief','xy (vec2 surface position) → height',
+   'P_poreDepth*0.02*(1.0 - smoothstep(0.0, 0.35, voro(xy*P_poreScale).x)) + P_wrinkle*0.012*fbm(vec2(xy.x*5.0, xy.y*38.0))'],
+  ['LASH_ANGLE','Lash curl','s (0 root → 1 tip), aSeed (0–1 per lash) → angle up from forward (rad)',
+   'P_lashLift + P_lashCurl*s*s + 0.15*(aSeed - 0.5)'],
+  ['BROW_CURVE','Brow centerline','x → y',
+   'P_browY + P_browArch*(1.0 - pow((x - P_browPeakX)/1.4, 2.0))'],
+  ['BROW_ANGLE','Brow hair direction','u (0 inner → 1 outer), s2 (0–1 random) → angle in face plane (rad)',
+   'mix(P_browInAng, P_browOutAng, smoothstep(0.0, 0.6, u)) + 0.5*(s2 - 0.5)']
+];
+
+const DEF_P = {}; PARAMS.forEach(p => DEF_P[p[1]] = p[6]);
+const DEF_S = {}; SLOTS.forEach(s => DEF_S[s[0]] = s[3]);
+
+// ------------------------------------------------------------------
+// GLSL library (shared by every shader)
+// ------------------------------------------------------------------
+const UNI = PARAMS.map(p => 'uniform float P_' + p[1] + ';').join('\n') +
+  '\nuniform float uSeed;\nuniform float uOpenEff;\nuniform float uTime;\n';
+
+const LIB = `
+float hash(vec2 p){ p += uSeed; return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float pnoise(vec2 p, float per){
+  vec2 i = floor(p), f = fract(p); f = f*f*(3.0 - 2.0*f);
+  float a = hash(vec2(mod(i.x, per), i.y));
+  float b = hash(vec2(mod(i.x + 1.0, per), i.y));
+  float c = hash(vec2(mod(i.x, per), i.y + 1.0));
+  float d = hash(vec2(mod(i.x + 1.0, per), i.y + 1.0));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+float pfbm(vec2 p, float per){
+  float s = 0.0, a = 0.5;
+  for (int i = 0; i < 5; i++){ s += a*pnoise(p, per); p *= 2.0; per *= 2.0; a *= 0.5; }
+  return s;
+}
+float fbm(vec2 p){ return pfbm(p, 4096.0); }
+vec2 voro(vec2 p){
+  vec2 i = floor(p), f = fract(p); float d1 = 8.0, d2 = 8.0;
+  for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++){
+    vec2 g = vec2(float(x), float(y));
+    vec2 o = vec2(hash(i + g), hash(i + g + 17.3));
+    float d = length(g + o - f);
+    if (d < d1){ d2 = d1; d1 = d; } else if (d < d2){ d2 = d; }
+  }
+  return vec2(d1, d2);
+}
+vec3 tone(vec3 c){ return vec3(1.0) - exp(-max(c, 0.0)*P_exposure); }
+float upperLid(float x){ float xs = x/P_lidW; float open = uOpenEff; return ({{UPPER_LID}}); }
+float lowerLid(float x){ float xs = x/P_lidW; float open = uOpenEff; return ({{LOWER_LID}}); }
+float browCurve(float x){ return ({{BROW_CURVE}}); }
+float skinZ(float x, float y){
+  float r = sqrt(x*x + y*y);
+  float sph = sqrt(max(1.025*1.025 - r*r, 0.0));
+  float gau = P_domeH*exp(-r*r/(2.0*P_domeS*P_domeS));
+  float yu = upperLid(x);
+  return ({{SKIN_Z}});
+}
+`;
+
+// ---------------- Eyeball ----------------
+const EYE_V = `
+varying vec3 vPos; varying vec3 vW;
+void main(){ vPos = position; vW = (modelMatrix*vec4(position, 1.0)).xyz;
+  gl_Position = projectionMatrix*modelViewMatrix*vec4(position, 1.0); }`;
+const EYE_F = `
+uniform vec3 uCamObj; uniform vec3 uLightObj; uniform mat3 uRot; uniform float uPupil;
+varying vec3 vPos; varying vec3 vW;
+void main(){
+  vec3 p = normalize(vPos); vec3 n = p;
+  vec3 v = normalize(uCamObj - vPos);
+  vec3 L = normalize(uLightObj);
+  float irisR = P_irisSize;
+  float zPlane = sqrt(max(1.0 - irisR*irisR, 0.0)) - P_irisDepth;
+
+  float th = acos(clamp(p.z, -1.0, 1.0));
+  float ph = atan(p.y, p.x);
+  float vP = floor(max(P_veinScale, 2.0));
+  float veinN = pfbm(vec2(ph/6.2832*vP, th*5.0), vP);
+  float veinN2 = pfbm(vec2(ph/6.2832*vP*2.0 + 7.0, th*11.0), vP*2.0);
+  float vein = ({{VEIN}});
+  float veinMask = smoothstep(P_veinStart, P_veinStart + 1.05, th);
+  vec3 sclera = mix(vec3(0.92, 0.90, 0.87), vec3(0.93, 0.80, 0.78), smoothstep(0.8, 2.0, th));
+  sclera = mix(sclera, vec3(0.72, 0.16, 0.14), clamp(vein*veinMask, 0.0, 1.0)*P_veinAmt);
+  float car = exp(-pow((vW.x + P_lidW*0.93)/0.09, 2.0))*step(0.0, vW.z);
+  sclera = mix(sclera, vec3(0.86, 0.46, 0.45), car*P_caruncle);
+
+  vec3 rd = refract(-v, n, 1.0/P_ior);
+  float t = (zPlane - p.z)/min(rd.z, -0.05);
+  vec2 q = p.xy + rd.xy*t;
+  float r = length(q)/irisR;
+  float a = atan(q.y, q.x);
+  float u = a/6.2832 + 0.5;
+  float N1 = floor(max(P_fibers, 2.0));
+  float N2 = N1*2.0;
+  float fib = ({{FIBER}});
+  float fib2 = ({{FIBER2}});
+  float pupilR = uPupil + P_pupilWobble*(pnoise(vec2(u*40.0, 0.0), 40.0) - 0.5);
+  vec2 vo = voro(q/irisR*P_cryptScale);
+  float crypt = ({{CRYPT}});
+  float band = smoothstep(pupilR + 0.12, pupilR + 0.25, r)*smoothstep(0.95, 0.7, r);
+  vec3 base = mix(vec3(P_strR, P_strG, P_strB), vec3(P_melR, P_melG, P_melB), P_melanin);
+  vec3 hi = mix(vec3(0.66, 0.84, 0.86), vec3(0.80, 0.62, 0.30), P_melanin);
+  vec3 ic = ({{IRIS_MIX}});
+  float coll = smoothstep(pupilR + 0.03, pupilR + 0.12, r)*smoothstep(P_collR + 0.08, P_collR - 0.1, r);
+  ic = mix(ic, vec3(0.66, 0.50, 0.18)*(0.55 + fib), clamp(coll*P_collarette*(0.4 + P_melanin), 0.0, 1.0));
+  ic *= 1.0 - crypt*band*P_cryptDepth;
+  ic *= ({{LIMBAL}});
+  float pup = smoothstep(pupilR + 0.015, pupilR - 0.01, r);
+  ic = mix(ic, vec3(0.012), pup);
+
+  float corneaZone = smoothstep(irisR*1.16, irisR*1.04, length(p.xy))*step(0.0, p.z);
+  float irisMask = smoothstep(1.03, 0.985, r)*corneaZone;
+
+  float diff = max(dot(n, L), 0.0);
+  vec3 sclLit = sclera*(P_ambient + 0.78*diff);
+  vec3 irisLit = ic*(0.55 + 0.6*max(dot(vec3(0.0, 0.0, 1.0), L), 0.0));
+  vec3 col = mix(sclLit, irisLit, irisMask);
+
+  float yu = upperLid(vW.x), yl = lowerLid(vW.x);
+  float shU = 1.0 - P_lidShadowAmt*(1.0 - smoothstep(0.0, P_lidShadow, yu - vW.y));
+  float shL = 1.0 - 0.6*P_lidShadowAmt*(1.0 - smoothstep(0.0, P_lidShadow*0.5, vW.y - yl));
+  float cornerAO = smoothstep(P_lidW, P_lidW*0.6, abs(vW.x));
+  col *= shU*shL*mix(0.6, 1.0, cornerAO);
+
+  float ndv = max(dot(n, v), 0.0);
+  float F = ({{FRESNEL}});
+  vec3 rv = uRot*reflect(-v, n);
+  vec3 env = mix(vec3(0.05), vec3(0.35, 0.36, 0.37), smoothstep(-0.2, 0.9, rv.y));
+  float win = smoothstep(0.04, 0.0, abs(rv.x - P_catchX) - P_catchW)*smoothstep(0.04, 0.0, abs(rv.y - P_catchY) - P_catchH)*step(0.0, rv.z);
+  vec3 h = normalize(L + v);
+  float spec = pow(max(dot(n, h), 0.0), mix(120.0, P_specPow, corneaZone));
+  float tear = (1.0 - smoothstep(0.0, 0.025, vW.y - yl))*P_tear;
+  col += F*env*(1.0 + tear) + win*mix(0.35, 1.0, corneaZone)*P_catchlight*shU + spec*P_specInt*shU + tear*0.12;
+  gl_FragColor = vec4(tone(col), 1.0);
+}`;
+
+// ---------------- Skin ----------------
+const SKIN_V = `
+varying vec3 vW; varying vec3 vN;
+void main(){
+  vec2 xy = position.xy; float e = 0.004;
+  float z = skinZ(xy.x, xy.y);
+  float dx = (skinZ(xy.x + e, xy.y) - skinZ(xy.x - e, xy.y))/(2.0*e);
+  float dy = (skinZ(xy.x, xy.y + e) - skinZ(xy.x, xy.y - e))/(2.0*e);
+  vN = normalize(vec3(-dx, -dy, 1.0));
+  vW = vec3(xy, z);
+  gl_Position = projectionMatrix*viewMatrix*vec4(vW, 1.0);
+}`;
+const SKIN_F = `
+varying vec3 vW; varying vec3 vN;
+float bumpH(vec2 xy){ return ({{SKIN_BUMP}}); }
+void main(){
+  float x = vW.x, y = vW.y;
+  float yu = upperLid(x), yl = lowerLid(x);
+  if (abs(x) < P_lidW && y < yu && y > yl) discard;
+  float d = abs(x) < P_lidW ? (y >= yu ? y - yu : yl - y) : length(vec2(abs(x) - P_lidW, y - P_canthalTilt*x));
+  float above = (abs(x) < P_lidW && y >= yu) ? 1.0 : 0.0;
+  vec2 xy = vW.xy; float e = 0.0025;
+  float hx = (bumpH(xy + vec2(e, 0.0)) - bumpH(xy - vec2(e, 0.0)))/(2.0*e);
+  float hy = (bumpH(xy + vec2(0.0, e)) - bumpH(xy - vec2(0.0, e)))/(2.0*e);
+  vec3 n = normalize(vN - vec3(hx, hy, 0.0));
+  vec3 L = normalize(vec3(P_lightX, P_lightY, P_lightZ));
+  vec3 V = normalize(cameraPosition - vW);
+  vec3 alb = vec3(P_skinR, P_skinG, P_skinB);
+  alb = mix(alb, alb*vec3(1.0, 0.76, 0.76), P_lidRed*exp(-d/0.22));
+  float margin = 1.0 - smoothstep(0.0, P_marginW, d);
+  alb = mix(alb, vec3(0.78, 0.42, 0.40), margin);
+  alb *= 1.0 - P_liner*above*(1.0 - smoothstep(P_marginW, P_marginW + 0.035, d))*(1.0 - margin);
+  float ndl = dot(n, L);
+  float wrapD = max((ndl + P_wrap)/(1.0 + P_wrap), 0.0);
+  vec3 sss = vec3(1.0, 0.35, 0.25)*P_sss*max(wrapD - max(ndl, 0.0), 0.0);
+  vec3 col = alb*(P_ambient + wrapD) + alb*sss;
+  vec3 h = normalize(L + V);
+  float spec = pow(max(dot(n, h), 0.0), mix(P_skinGloss, 300.0, margin))*mix(P_skinSpec, 1.2, margin);
+  col += spec*0.6;
+  col *= 1.0 - 0.85*smoothstep(1.6, 3.6, length(xy*vec2(0.75, 1.0) - vec2(0.0, 0.3)));
+  gl_FragColor = vec4(tone(col), 1.0);
+}`;
+
+// ---------------- Hair (lashes + brows), instanced ribbons ----------------
+const HAIR_V = `
+attribute float aU; attribute float aSeed;
+uniform float uLower; uniform float uBrow;
+varying float vT; varying float vSeed; varying float vSide;
+void main(){
+  float side = position.x; float t = position.y;
+  vec3 p; vec3 tng; float width;
+  if (uBrow < 0.5){
+    float span = P_lidW*P_lashSpan;
+    float x = mix(-span, span, aU);
+    float cN = max(floor(P_clumpN), 1.0);
+    float cx = mix(-span, span, (floor(aU*cN) + 0.5)/cN);
+    float y = uLower > 0.5 ? lowerLid(x) : upperLid(x);
+    vec3 root = vec3(x, y, skinZ(x, y) - 0.01);
+    float edge = pow(max(1.0 - abs(2.0*aU - 1.0), 0.0), P_lashTaperPow);
+    float len = P_lashLen*(0.35 + 0.65*edge)*(1.0 + P_lashJitter*(aSeed - 0.5))*(uLower > 0.5 ? P_lowerScale : 1.0);
+    float sgn = uLower > 0.5 ? -1.0 : 1.0;
+    vec2 acc = vec2(0.0);
+    float ds = t/10.0;
+    for (int i = 0; i < 10; i++){
+      float s = (float(i) + 0.5)*ds;
+      float ang = ({{LASH_ANGLE}});
+      acc += vec2(sin(ang), cos(ang))*ds;
+    }
+    float s = t;
+    float angT = ({{LASH_ANGLE}});
+    float sx = (x/P_lidW)*P_lashSplay*len;
+    p = vec3(root.x + sx*t + (cx - x)*P_clump*t, root.y + sgn*len*acc.x, root.z + len*acc.y);
+    tng = normalize(vec3(sx + (cx - x)*P_clump, sgn*len*sin(angT), len*cos(angT)) + 1e-5);
+    width = P_lashThick*pow(1.0 - t, 0.7);
+  } else {
+    float s2 = fract(aSeed*91.731);
+    float u = aU;
+    float x = (u*2.0 - 1.0)*P_browSpan + (s2 - 0.5)*0.03;
+    float thick = P_browThick*(1.0 - 0.65*u)*(1.0 - pow(abs(u*2.0 - 1.0), 6.0)*0.5);
+    float y = browCurve(x) + (aSeed - 0.5)*thick;
+    float ang = ({{BROW_ANGLE}});
+    float len = P_browLen*(0.7 + 0.6*s2);
+    vec2 dir = vec2(cos(ang), sin(ang));
+    vec2 q = vec2(x, y) + dir*len*t;
+    p = vec3(q, skinZ(q.x, q.y) + 0.006 + 0.025*t*(1.0 - t));
+    tng = vec3(dir, 0.0);
+    width = P_browHairW*(1.0 - 0.7*t);
+  }
+  vec3 vd = normalize(cameraPosition - p);
+  vec3 off = normalize(cross(tng, vd) + 1e-5);
+  p += off*side*width*0.5;
+  vT = t; vSeed = aSeed; vSide = side;
+  gl_Position = projectionMatrix*viewMatrix*vec4(p, 1.0);
+}`;
+const HAIR_F = `
+varying float vT; varying float vSeed; varying float vSide;
+void main(){
+  vec3 c = vec3(P_hairR, P_hairG, P_hairB)*(0.7 + 0.6*vSeed);
+  float a = (1.0 - smoothstep(0.75, 1.0, vT))*P_hairOpacity;
+  gl_FragColor = vec4(tone(c), a);
+}`;
+
+// ------------------------------------------------------------------
+// Renderer & scene
+// ------------------------------------------------------------------
+const canvas = document.getElementById('c');
+const stage = document.getElementById('stage');
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); }
+catch (e) { document.getElementById('err').hidden = false; return; }
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+renderer.setClearColor(0x050606, 1);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 60);
+
+// Shared uniforms (one value object per parameter, referenced by every material)
+const shared = { uSeed: { value: 0 }, uOpenEff: { value: 1 }, uTime: { value: 0 } };
+PARAMS.forEach(p => shared['P_' + p[1]] = { value: p[6] });
+const P = new Proxy({}, { get: (_, k) => shared['P_' + k].value });
+
+const eyeUni = Object.assign({}, shared, {
+  uCamObj: { value: new THREE.Vector3() }, uLightObj: { value: new THREE.Vector3() },
+  uRot: { value: new THREE.Matrix3() }, uPupil: { value: 0.24 }
+});
+const mkHairUni = (lower, brow) => Object.assign({}, shared, { uLower: { value: lower }, uBrow: { value: brow } });
+
+const eyeMat = new THREE.ShaderMaterial({ uniforms: eyeUni });
+const skinMat = new THREE.ShaderMaterial({ uniforms: shared });
+const hairMats = [mkHairUni(0, 0), mkHairUni(1, 0), mkHairUni(0, 1)].map(u =>
+  new THREE.ShaderMaterial({ uniforms: u, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+
+const eye = new THREE.Mesh(new THREE.SphereGeometry(1, 160, 120), eyeMat);
+eye.renderOrder = 0; scene.add(eye);
+const skinGeo = new THREE.PlaneGeometry(9, 6, 300, 200); skinGeo.translate(0, 0.3, 0);
+const skin = new THREE.Mesh(skinGeo, skinMat); skin.renderOrder = 1; skin.frustumCulled = false; scene.add(skin);
+
+function hairGeo(seg, max) {
+  const g = new THREE.InstancedBufferGeometry();
+  const pos = [], idx = [];
+  for (let i = 0; i <= seg; i++) { const t = i / seg; pos.push(-1, t, 0, 1, t, 0); }
+  for (let i = 0; i < seg; i++) { const a = 2 * i; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  const aU = new Float32Array(max), aS = new Float32Array(max);
+  // golden-ratio sequence: any prefix of it is evenly spread along the lid
+  for (let i = 0; i < max; i++) { aU[i] = (i * 0.6180339887 + 0.31) % 1; aS[i] = Math.random(); }
+  g.setAttribute('aU', new THREE.InstancedBufferAttribute(aU, 1));
+  g.setAttribute('aSeed', new THREE.InstancedBufferAttribute(aS, 1));
+  g.instanceCount = max;
+  return g;
+}
+const hairs = [hairGeo(12, 300), hairGeo(12, 200), hairGeo(5, 1000)].map((g, i) => {
+  const m = new THREE.Mesh(g, hairMats[i]); m.frustumCulled = false; m.renderOrder = 2 + i; scene.add(m); return m;
+});
+
+// ------------------------------------------------------------------
+// Shader assembly + safe compile
+// ------------------------------------------------------------------
+function fill(src, slots) { return src.replace(/\{\{(\w+)\}\}/g, (m, k) => '(' + slots[k] + ')'); }
+function buildSources(slots) {
+  const head = fill(UNI + LIB, slots);
+  return {
+    eye: { v: head + EYE_V, f: head + fill(EYE_F, slots) },
+    skin: { v: head + SKIN_V, f: head + fill(SKIN_F, slots) },
+    hair: { v: head + fill(HAIR_V, slots), f: head + HAIR_F }
+  };
+}
+const gl = renderer.getContext();
+const GL2 = renderer.capabilities.isWebGL2;
+const VHEAD = (GL2 ? '#version 300 es\n#define attribute in\n#define varying out\n#define texture2D texture\n' : '') +
+  'precision highp float;\nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec3 cameraPosition;\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\n';
+const FHEAD = (GL2 ? '#version 300 es\nprecision highp float;\n#define varying in\nout highp vec4 pc_fragColor;\n#define gl_FragColor pc_fragColor\n' : 'precision highp float;\n') +
+  'uniform mat4 viewMatrix;\nuniform vec3 cameraPosition;\n';
+function check(src, vert) {
+  const sh = gl.createShader(vert ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);
+  gl.shaderSource(sh, (vert ? VHEAD : FHEAD) + src);
+  gl.compileShader(sh);
+  const ok = gl.getShaderParameter(sh, gl.COMPILE_STATUS);
+  const log = ok ? '' : (gl.getShaderInfoLog(sh) || 'Unknown compile error');
+  gl.deleteShader(sh);
+  return log;
+}
+function checkAll(slots) {
+  const s = buildSources(slots), errs = [];
+  for (const k of ['eye', 'skin', 'hair']) {
+    const ev = check(s[k].v, true); if (ev) errs.push(k + ' vertex: ' + ev);
+    const ef = check(s[k].f, false); if (ef) errs.push(k + ' fragment: ' + ef);
+  }
+  return { s, errs };
+}
+let applied = Object.assign({}, DEF_S);
+function install(s) {
+  eyeMat.vertexShader = s.eye.v; eyeMat.fragmentShader = s.eye.f; eyeMat.needsUpdate = true;
+  skinMat.vertexShader = s.skin.v; skinMat.fragmentShader = s.skin.f; skinMat.needsUpdate = true;
+  hairMats.forEach(m => { m.vertexShader = s.hair.v; m.fragmentShader = s.hair.f; m.needsUpdate = true; });
+}
+
+// ------------------------------------------------------------------
+// UI
+// ------------------------------------------------------------------
+const $ = id => document.getElementById(id);
+const decimals = step => { const s = String(step); return s.includes('.') ? s.split('.')[1].length : 0; };
+const groupsEl = $('groups');
+const rows = [];
+const groups = {};
+PARAMS.forEach(([g, id, label, min, max, step, def]) => {
+  if (!groups[g]) {
+    const d = document.createElement('details');
+    if (Object.keys(groups).length === 0) d.open = true;
+    d.innerHTML = '<summary>' + g + ' <span class="count"></span></summary><div class="grp"></div>';
+    groupsEl.appendChild(d);
+    groups[g] = { el: d, body: d.querySelector('.grp'), ids: [] };
+  }
+  const row = document.createElement('div');
+  row.className = 'prm';
+  row.dataset.key = (label + ' P_' + id + ' ' + g).toLowerCase();
+  row.innerHTML = '<label for="p-' + id + '"><span>' + label + '</span><code>P_' + id + '</code></label>' +
+    '<input type="range" id="p-' + id + '" min="' + min + '" max="' + max + '" step="' + step + '">' +
+    '<input type="number" id="n-' + id + '" min="' + min + '" max="' + max + '" step="' + step + '" aria-label="' + label + ' value">';
+  groups[g].body.appendChild(row);
+  groups[g].ids.push(id);
+  const r = row.querySelector('input[type=range]'), n = row.querySelector('input[type=number]');
+  const dp = decimals(step);
+  const set = (v, from) => {
+    v = Math.min(max, Math.max(min, +v)); if (!isFinite(v)) return;
+    shared['P_' + id].value = v;
+    if (from !== r) r.value = v;
+    if (from !== n) n.value = (+v).toFixed(dp);
+    save();
+  };
+  r.addEventListener('input', () => set(r.value, r));
+  n.addEventListener('change', () => set(n.value, n));
+  rows.push({ row, id, g, set });
+});
+Object.values(groups).forEach(gr => {
+  gr.el.querySelector('.count').textContent = gr.ids.length;
+  const b = document.createElement('button');
+  b.className = 'grp-reset'; b.textContent = 'Reset group';
+  b.addEventListener('click', () => rows.filter(x => groups[x.g] === gr).forEach(x => x.set(DEF_P[x.id])));
+  gr.body.appendChild(b);
+});
+const setParam = (id, v) => { const r = rows.find(x => x.id === id); if (r) r.set(v); };
+
+$('filter').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  Object.values(groups).forEach(gr => {
+    let hits = 0;
+    rows.filter(x => groups[x.g] === gr).forEach(x => {
+      const m = !q || x.row.dataset.key.includes(q);
+      x.row.hidden = !m; if (m) hits++;
+    });
+    gr.el.hidden = hits === 0;
+    if (q && hits) gr.el.open = true;
+  });
+});
+
+// Formula slots
+const slotsEl = $('slots');
+const slotTA = {};
+SLOTS.forEach(([id, label, locals, def]) => {
+  const w = document.createElement('div');
+  w.className = 'slot';
+  w.innerHTML = '<div class="slot-head"><b>' + label + '</b><button type="button">Reset</button></div>' +
+    '<p>Locals: <code>' + locals + '</code></p>' +
+    '<textarea id="s-' + id + '" spellcheck="false" aria-label="' + label + ' formula"></textarea>';
+  slotsEl.appendChild(w);
+  const ta = w.querySelector('textarea');
+  ta.value = def;
+  ta.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') applyFormulas(); });
+  w.querySelector('button').addEventListener('click', () => { ta.value = DEF_S[id]; ta.classList.remove('bad'); });
+  slotTA[id] = ta;
+});
+$('slotCount').textContent = SLOTS.length;
+
+function currentSlots() { const o = {}; SLOTS.forEach(s => o[s[0]] = slotTA[s[0]].value.trim() || DEF_S[s[0]]); return o; }
+function status(msg, cls) { const s = $('status'); s.textContent = msg; s.className = 'status' + (cls ? ' ' + cls : ''); }
+function applyFormulas() {
+  const next = currentSlots();
+  Object.values(slotTA).forEach(t => t.classList.remove('bad'));
+  const { s, errs } = checkAll(next);
+  if (errs.length) {
+    // find which edited slots are responsible
+    const bad = [];
+    SLOTS.forEach(([id]) => {
+      if (next[id] === applied[id]) return;
+      const trial = Object.assign({}, applied, { [id]: next[id] });
+      if (checkAll(trial).errs.length) bad.push(id);
+    });
+    bad.forEach(id => slotTA[id].classList.add('bad'));
+    const names = bad.map(id => SLOTS.find(x => x[0] === id)[1]);
+    status('Not applied. ' + (names.length ? 'Problem in: ' + names.join(', ') + '.\n' : '') +
+      errs[0].split('\n').filter(Boolean).slice(0, 3).join('\n'), 'bad');
+    return false;
+  }
+  install(s);
+  applied = next;
+  status('Applied. All shaders compiled.', 'ok');
+  save();
+  return true;
+}
+$('apply').addEventListener('click', applyFormulas);
+$('resetSlots').addEventListener('click', () => {
+  SLOTS.forEach(([id]) => { slotTA[id].value = DEF_S[id]; });
+  applyFormulas();
+});
+
+// Persistence
+const KEY = 'procedural-iris-v3';
+let saveT = 0;
+function snapshot() { const p = {}; PARAMS.forEach(x => p[x[1]] = shared['P_' + x[1]].value); return { params: p, slots: applied }; }
+function save() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(snapshot())); } catch (e) {} }, 300); }
+function loadPreset(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  if (obj.params) Object.keys(obj.params).forEach(k => { if (k in DEF_P) setParam(k, obj.params[k]); });
+  if (obj.slots) SLOTS.forEach(([id]) => { if (typeof obj.slots[id] === 'string') slotTA[id].value = obj.slots[id]; });
+  return true;
+}
+$('copyPreset').addEventListener('click', () => {
+  const txt = JSON.stringify(snapshot(), null, 2);
+  $('presetBox').value = txt;
+  const done = () => { $('presetStatus').textContent = 'Preset copied to the clipboard.'; $('presetStatus').className = 'status ok'; };
+  const fail = () => { $('presetBox').select(); $('presetStatus').textContent = 'Preset is in the box below, selected. Copy it from there.'; $('presetStatus').className = 'status'; };
+  try { navigator.clipboard.writeText(txt).then(done, fail); } catch (e) { fail(); }
+});
+$('loadPreset').addEventListener('click', () => {
+  let obj;
+  try { obj = JSON.parse($('presetBox').value); } catch (e) {
+    $('presetStatus').textContent = 'That text isn’t valid JSON. Paste a preset copied from this page.'; $('presetStatus').className = 'status bad'; return;
+  }
+  loadPreset(obj);
+  const ok = applyFormulas();
+  $('presetStatus').textContent = ok ? 'Preset loaded.' : 'Values loaded, but a formula failed to compile. See Formulas.';
+  $('presetStatus').className = 'status ' + (ok ? 'ok' : 'bad');
+});
+let armReset = false;
+$('resetAll').addEventListener('click', e => {
+  if (!armReset) { armReset = true; e.currentTarget.textContent = 'Tap again to confirm'; setTimeout(() => { armReset = false; $('resetAll').textContent = 'Reset everything'; }, 3000); return; }
+  armReset = false; e.currentTarget.textContent = 'Reset everything';
+  loadPreset({ params: DEF_P, slots: DEF_S }); applyFormulas();
+  $('presetStatus').textContent = 'Everything reset to defaults.'; $('presetStatus').className = 'status ok';
+});
+
+// Initial state: defaults, then any saved preset
+PARAMS.forEach(p => setParam(p[1], p[6]));
+let saved = null;
+try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+if (saved) loadPreset(saved);
+if (!applyFormulas()) { // saved formulas broken: fall back to defaults
+  SLOTS.forEach(([id]) => slotTA[id].value = DEF_S[id]);
+  applied = {}; applyFormulas();
+}
+status('');
+
+// ------------------------------------------------------------------
+// Interaction: gaze / camera drag, saccades, blinking
+// ------------------------------------------------------------------
+let mode = 'gaze';
+$('dragMode').addEventListener('click', e => {
+  mode = mode === 'gaze' ? 'camera' : 'gaze';
+  e.currentTarget.textContent = 'Drag: ' + mode;
+  e.currentTarget.setAttribute('aria-pressed', String(mode === 'camera'));
+  $('hint').textContent = mode === 'gaze' ? 'Drag to move the gaze' : 'Drag to orbit the camera';
+});
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let saccades = !reduce;
+const sacBtn = $('sac');
+const syncSac = () => { sacBtn.setAttribute('aria-pressed', String(saccades)); sacBtn.textContent = saccades ? 'Saccades on' : 'Saccades off'; };
+syncSac();
+sacBtn.addEventListener('click', () => { saccades = !saccades; syncSac(); });
+$('seed').addEventListener('click', () => { shared.uSeed.value = Math.random() * 100; });
+
+let blinkStart = -1e9, nextBlink = performance.now() + 2000;
+$('blink').addEventListener('click', () => { blinkStart = performance.now(); });
+
+let yaw = 0, pitch = 0, tYaw = 0, tPitch = 0, dragging = false, lx = 0, ly = 0, nextSac = 0;
+canvas.addEventListener('pointerdown', e => { dragging = true; lx = e.clientX; ly = e.clientY; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const dx = e.clientX - lx, dy = e.clientY - ly; lx = e.clientX; ly = e.clientY;
+  if (mode === 'gaze') {
+    tYaw = Math.max(-0.7, Math.min(0.7, tYaw + dx * 0.005));
+    tPitch = Math.max(-0.5, Math.min(0.5, tPitch + dy * 0.005));
+  } else {
+    setParam('camYaw', P.camYaw - dx * 0.004);
+    setParam('camPitch', P.camPitch + dy * 0.004);
+  }
+});
+const endDrag = () => { dragging = false; nextSac = performance.now() + 2500; };
+canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+canvas.addEventListener('wheel', e => { e.preventDefault(); setParam('camDist', P.camDist * (1 + Math.sign(e.deltaY) * 0.06)); }, { passive: false });
+
+
+// ------------------------------------------------------------------
+// Hand control: MediaPipe hand landmarks (on-device) → parameters
+// ------------------------------------------------------------------
+let handActive = false;
+const G = { on: true, freeze: false, follow: true, landmarker: null, stream: null, lastVT: -1, hands: [], samples: [], filt: {}, lastA: null, lastB: null, starting: false };
+const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+const MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+const vid = $('cam'), ov = $('camOverlay'), octx = ov.getContext('2d');
+const RANGE = {}; PARAMS.forEach(p => RANGE[p[1]] = [p[3], p[4]]);
+const clamp01 = t => Math.min(1, Math.max(0, t));
+const lerp = (a, b, t) => a + (b - a) * clamp01(t);
+function gStatus(t, cls) { const el = $('gStatus'); el.textContent = t; el.className = 'status' + (cls ? ' ' + cls : ''); }
+
+try { G.samples = JSON.parse(localStorage.getItem('procedural-iris-poses') || '[]') || []; } catch (e) { G.samples = []; }
+function updateCount() {
+  const n = G.samples.length;
+  $('gCount').textContent = n === 0 ? 'No learned poses yet. Using the starter mapping.'
+    : n === 1 ? '1 learned pose. Learn one more to switch from the starter mapping to your poses.'
+    : n + ' learned poses. Your hands now blend between them.';
+}
+function saveSamples() { try { localStorage.setItem('procedural-iris-poses', JSON.stringify(G.samples)); } catch (e) {} updateCount(); }
+
+// live parameter writes: uniforms every frame, sliders ~8×/s
+const pending = {};
+function setLive(id, v) {
+  const r = RANGE[id]; if (!r) return;
+  v = Math.min(r[1], Math.max(r[0], v));
+  shared['P_' + id].value = v; pending[id] = v;
+}
+setInterval(() => {
+  for (const id in pending) { const row = rows.find(x => x.id === id); if (row) row.set(pending[id]); delete pending[id]; }
+}, 120);
+
+// One Euro filter: smooth when still, responsive when moving
+class OneEuro {
+  constructor(minCut, beta) { this.mc = minCut; this.b = beta; this.x = null; this.dx = 0; this.t = 0; }
+  a(c, dt) { const r = 2 * Math.PI * c * dt; return r / (r + 1); }
+  f(x, t) {
+    if (this.x === null) { this.x = x; this.t = t; return x; }
+    const dt = Math.max(1e-3, (t - this.t) / 1000); this.t = t;
+    this.dx += this.a(1, dt) * ((x - this.x) / dt - this.dx);
+    this.x += this.a(this.mc + this.b * Math.abs(this.dx), dt) * (x - this.x);
+    return this.x;
+  }
+}
+function smoothF(pre, f, t) {
+  const o = {};
+  for (const k in f) { const key = pre + k; if (!G.filt[key]) G.filt[key] = new OneEuro(1.0, 0.05); o[k] = G.filt[key].f(f[k], t); }
+  return o;
+}
+
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+function features(lm) {
+  const s = dist(lm[0], lm[9]) || 1e-3;
+  const curl = i => clamp01((2.0 - dist(lm[i], lm[0]) / s) / 1.1);
+  const open = 1 - (curl(8) + curl(12) + curl(16) + curl(20)) / 4;
+  const pinch = clamp01((dist(lm[4], lm[8]) / s - 0.2) / 1.0);
+  const vx = -(lm[9].x - lm[0].x), vy = lm[9].y - lm[0].y;
+  return { x: 1 - lm[9].x, y: lm[9].y, open, pinch, tilt: Math.atan2(vx, -vy), size: s };
+}
+function vecOf(A, B) {
+  return [A.x, A.y, A.open, A.pinch, A.tilt / 1.5, (A.size - 0.1) * 4,
+    B ? 2 : 0, B ? B.x : 0, B ? B.y : 0, B ? B.open : 0, B ? B.pinch : 0, B ? B.tilt / 1.5 : 0];
+}
+
+function applyStarter(A, B) {
+  setLive('open', lerp(0.05, 1.15, (A.open - 0.1) / 0.8));
+  setLive('pupil', lerp(0.12, 0.5, A.pinch));
+  setLive('melanin', lerp(0, 1, A.tilt / 1.4 + 0.5));
+  setLive('camDist', lerp(7.5, 3.4, (A.size - 0.1) / 0.22));
+  if (B) {
+    setLive('lightX', lerp(-1.3, 1.3, B.x));
+    setLive('lightY', lerp(1.4, -0.6, B.y));
+    setLive('lashLen', lerp(0.08, 0.5, B.open));
+    setLive('fibers', Math.round(lerp(16, 160, B.pinch)));
+  }
+}
+function applyLearned(v) {
+  // inverse-distance weighting (Shepard, power 3) between learned poses
+  const S = G.samples; let ws = new Array(S.length), sum = 0;
+  for (let i = 0; i < S.length; i++) {
+    let d2 = 0; for (let k = 0; k < v.length; k++) { const d = v[k] - S[i].v[k]; d2 += d * d; }
+    if (d2 < 1e-6) { ws.fill(0); ws[i] = 1; sum = 1; break; }
+    ws[i] = 1 / Math.pow(d2, 1.5); sum += ws[i];
+  }
+  const ids = Object.keys(S[0].p);
+  for (const id of ids) {
+    let acc = 0; for (let i = 0; i < S.length; i++) acc += ws[i] * (S[i].p[id] ?? DEF_P[id]);
+    setLive(id, acc / sum);
+  }
+}
+
+function drawOverlay(hs) {
+  const w = vid.videoWidth || 160, h = vid.videoHeight || 120;
+  if (ov.width !== w || ov.height !== h) { ov.width = w; ov.height = h; } else octx.clearRect(0, 0, w, h);
+  const r = Math.max(2.5, w / 100);
+  hs.forEach((hd, i) => {
+    octx.fillStyle = i === 0 ? '#7fb7a8' : '#e0b36f';
+    for (const p of hd.lm) { octx.beginPath(); octx.arc(p.x * w, p.y * h, r, 0, 6.2832); octx.fill(); }
+  });
+}
+
+function gestureTick(now) {
+  if (!G.on || !G.landmarker || !G.stream || vid.readyState < 2) { handActive = false; return; }
+  if (vid.currentTime !== G.lastVT) {
+    G.lastVT = vid.currentTime;
+    let res;
+    try { res = G.landmarker.detectForVideo(vid, now); } catch (e) { return; }
+    const hs = (res.landmarks || []).map(lm => ({ lm, f: features(lm) })).sort((a, b) => b.f.x - a.f.x);
+    G.hands = hs; drawOverlay(hs);
+    const n = hs.length;
+    if (G.freeze) gStatus('Frozen. Tap Unfreeze to keep shaping.');
+    else gStatus(n ? 'Tracking ' + n + ' hand' + (n > 1 ? 's' : '') + '.' : 'No hands in view.', n ? 'ok' : '');
+  }
+  handActive = G.hands.length > 0;
+  if (!handActive) return;
+  const A = smoothF('A', G.hands[0].f, now);
+  const B = G.hands[1] ? smoothF('B', G.hands[1].f, now) : null;
+  G.lastA = A; G.lastB = B;
+  if (G.freeze) return;
+  if (G.follow) { tYaw = (A.x - 0.5) * 1.4; tPitch = (A.y - 0.5) * 0.9; }
+  if (G.samples.length >= 2) applyLearned(vecOf(A, B)); else applyStarter(A, B);
+}
+
+async function startCam() {
+  if (G.starting) return; G.starting = true;
+  try {
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      gStatus('Camera needs this page opened from an https link in Safari or Chrome.', 'bad'); return;
+    }
+    gStatus('Starting camera…');
+    try {
+      G.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+      vid.srcObject = G.stream; await vid.play();
+    } catch (e) {
+      G.stream = null;
+      $('camStart').hidden = false;
+      gStatus(e && e.name === 'NotAllowedError'
+        ? 'Camera permission is off. Tap Start camera, or allow camera for this site in browser settings.'
+        : 'The camera didn’t start (' + ((e && e.message) || e) + '). Tap Start camera to retry.', 'bad');
+      return;
+    }
+    if (!G.on) { stopCam(); return; }
+    $('camStart').hidden = true; $('camBox').hidden = false;
+    if (!G.landmarker) {
+      gStatus('Loading the hand model (about 8 MB, first time only)…');
+      try {
+        const mp = await import(MP + '/vision_bundle.mjs');
+        const fs = await mp.FilesetResolver.forVisionTasks(MP + '/wasm');
+        const mk = d => mp.HandLandmarker.createFromOptions(fs, { baseOptions: { modelAssetPath: MODEL, delegate: d }, runningMode: 'VIDEO', numHands: 2 });
+        try { G.landmarker = await mk('GPU'); } catch (e) { G.landmarker = await mk('CPU'); }
+      } catch (e) {
+        gStatus('The hand model didn’t load (' + ((e && e.message) || e) + '). Check your connection, then turn Hand control off and on.', 'bad');
+        return;
+      }
+    }
+    gStatus('Show your hand to the camera.');
+  } finally { G.starting = false; }
+}
+function stopCam() {
+  if (G.stream) G.stream.getTracks().forEach(t => t.stop());
+  G.stream = null; vid.srcObject = null; $('camBox').hidden = true;
+  handActive = false; G.hands = []; $('camStart').hidden = true;
+  gStatus('Hand control is off. The sliders work as normal.');
+}
+const sw = $('gSwitch');
+function setOn(v) {
+  G.on = v; sw.setAttribute('aria-checked', String(v));
+  try { localStorage.setItem('procedural-iris-hand', v ? '1' : '0'); } catch (e) {}
+  if (v) startCam(); else stopCam();
+}
+sw.addEventListener('click', () => setOn(!G.on));
+$('camStart').addEventListener('click', () => startCam());
+$('gFreeze').addEventListener('click', e => { G.freeze = !G.freeze; e.currentTarget.textContent = G.freeze ? 'Unfreeze' : 'Freeze'; e.currentTarget.setAttribute('aria-pressed', String(G.freeze)); });
+$('gFollow').addEventListener('click', e => { G.follow = !G.follow; e.currentTarget.setAttribute('aria-pressed', String(G.follow)); });
+$('gLearn').addEventListener('click', () => {
+  if (!G.lastA || !handActive) { gStatus('Hold your hand in view, then tap Learn pose.', 'bad'); return; }
+  const p = {}; PARAMS.forEach(x => { if (x[0] !== 'Light & camera' && x[0] !== 'Gaze') p[x[1]] = shared['P_' + x[1]].value; });
+  G.samples.push({ v: vecOf(G.lastA, G.lastB), p });
+  saveSamples();
+  gStatus('Pose learned. Change the sliders, hold a different pose, and learn again.', 'ok');
+});
+let armClear = false;
+$('gClear').addEventListener('click', e => {
+  if (!G.samples.length) return;
+  if (!armClear) { armClear = true; e.currentTarget.textContent = 'Tap again to clear'; setTimeout(() => { armClear = false; $('gClear').textContent = 'Clear poses'; }, 3000); return; }
+  armClear = false; e.currentTarget.textContent = 'Clear poses';
+  G.samples = []; saveSamples(); gStatus('Poses cleared. Back to the starter mapping.');
+});
+updateCount();
+let handPref = '1'; try { handPref = localStorage.getItem('procedural-iris-hand') || '1'; } catch (e) {}
+setOn(handPref !== '0');
+
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+}
+new ResizeObserver(resize).observe(stage);
+resize();
+
+const inv = new THREE.Matrix4();
+const target = new THREE.Vector3(0, 0.35, 0.4);
+const lightW = new THREE.Vector3();
+function frame(now) {
+  gestureTick(now);
+  // camera
+  const cy = P.camYaw, cp = P.camPitch, cd = P.camDist;
+  camera.position.set(target.x + cd * Math.sin(cy) * Math.cos(cp), target.y + cd * Math.sin(cp), target.z + cd * Math.cos(cy) * Math.cos(cp));
+  camera.lookAt(target);
+  camera.fov = camera.aspect < 1 ? Math.min(100, P.fov / camera.aspect * 0.8) : P.fov;
+  camera.updateProjectionMatrix();
+
+  // gaze
+  if (saccades && !dragging && !handActive && now > nextSac) {
+    tYaw = (Math.random() - 0.5) * 0.9 * P.sacAmp; tPitch = (Math.random() - 0.5) * 0.5 * P.sacAmp;
+    nextSac = now + P.sacInterval * 1000 * (0.5 + Math.random());
+  }
+  const k = dragging ? 0.3 : 0.2;
+  yaw += (tYaw - yaw) * k; pitch += (tPitch - pitch) * k;
+  eye.rotation.set(pitch, yaw, 0);
+
+  // blinking
+  if (!reduce && P.blinkRate > 0 && now > nextBlink) { blinkStart = now; nextBlink = now + (1000 / P.blinkRate) * (0.5 + Math.random()); }
+  const bp = (now - blinkStart) / 260;
+  let closed = 0;
+  if (bp >= 0 && bp < 1) closed = bp < 0.4 ? bp / 0.4 : 1 - (bp - 0.4) / 0.6;
+  closed = closed * closed * (3 - 2 * closed);
+  shared.uOpenEff.value = Math.max(0, (P.open - pitch * P.lidFollow) * (1 - closed));
+  shared.uTime.value = now / 1000;
+
+  // pupil
+  const hip = reduce ? 0 : Math.sin(now * 0.0011) * P.hippus;
+  eyeUni.uPupil.value += (P.pupil + hip - eyeUni.uPupil.value) * P.pupilSpeed;
+
+  // eye-space uniforms
+  eye.updateMatrixWorld();
+  inv.copy(eye.matrixWorld).invert();
+  eyeUni.uCamObj.value.copy(camera.position).applyMatrix4(inv);
+  lightW.set(P.lightX, P.lightY, P.lightZ);
+  if (lightW.lengthSq() < 1e-6) lightW.set(0, 0, 1);
+  eyeUni.uLightObj.value.copy(lightW.normalize()).transformDirection(inv);
+  eyeUni.uRot.value.setFromMatrix4(eye.matrixWorld);
+
+  // hair counts
+  hairs[0].geometry.instanceCount = Math.round(P.lashCount);
+  hairs[1].geometry.instanceCount = Math.round(P.lowerCount);
+  hairs[2].geometry.instanceCount = Math.round(P.browCount);
+  hairs.forEach(h => h.visible = h.geometry.instanceCount > 0);
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
