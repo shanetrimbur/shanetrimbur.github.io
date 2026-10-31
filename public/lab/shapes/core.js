@@ -421,9 +421,11 @@ function render(mul) {
   gl.bindBuffer(gl.ARRAY_BUFFER, quad);
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-  PARAMS.forEach(x => { if (locs[x[1]]) gl.uniform1f(locs[x[1]], values[x[1]]); });
+  const AU = window.LAB_AUDIO, audioOn = AU && AU.running && mod.kind === 'image';
+  const ovr = audioOn ? AU.overrides(values) : null;
+  PARAMS.forEach(x => { if (locs[x[1]]) gl.uniform1f(locs[x[1]], ovr && x[1] in ovr ? ovr[x[1]] : values[x[1]]); });
   gl.uniform2f(locs.uRes, w, h);
-  gl.uniform1f(locs.uTime, performance.now() / 1000);
+  gl.uniform1f(locs.uTime, audioOn ? AU.time() : performance.now() / 1000);
   gl.uniform1f(locs.uSeed, seed);
   if (mod.kind === 'image') {
     if (texFromCam && G.stream && vid.readyState >= 2) uploadTex(vid, vid.videoWidth, vid.videoHeight);
@@ -433,12 +435,37 @@ function render(mul) {
     gl.uniform1f(locs.uMirror, texFromCam ? 1 : 0);
   }
   gl.drawArrays(gl.TRIANGLES, 0, 3);
+  if (audioOn) analysisPass();
+}
+// 128×128 copy of the image for sound analysis
+const AS = 128;
+let aFB = null, aTex = null; const aPx = new Uint8Array(AS * AS * 4); let aLast = 0;
+function analysisPass() {
+  const now = performance.now(); if (now - aLast < 66) return; aLast = now;
+  if (!aFB) {
+    aTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, aTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, AS, AS, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    aFB = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, aFB);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, aTex, 0);
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, aFB);
+  gl.viewport(0, 0, AS, AS);
+  gl.uniform2f(locs.uRes, AS, AS);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.readPixels(0, 0, AS, AS, gl.RGBA, gl.UNSIGNED_BYTE, aPx);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  // warp centre in analysis pixels: screen z = (c + pan)·zoom
+  const zx = (values.cx + values.panX) * values.zoom, zy = (values.cy + values.panY) * values.zoom;
+  window.LAB_AUDIO.analyze(aPx, AS, values, [AS / 2 + zx * AS / 2, AS / 2 + zy * AS / 2]);
 }
 function loop(now) {
   gestureTick(now);
   if (interacting && now - lastInteract > 200) { interacting = false; dirty = true; }
   const animated = mod.kind === 'image' && (texFromCam || (mod.animatedBy || []).some(k => values[k] !== 0));
-  if (handActive || animated) dirty = true;
+  if (handActive || animated || (window.LAB_AUDIO && window.LAB_AUDIO.running && mod.kind === 'image')) dirty = true;
   if (dirty) { dirty = false; render(mod.kind === 'sdf' && (interacting || handActive) ? 0.45 : 1); }
   requestAnimationFrame(loop);
 }
@@ -657,7 +684,7 @@ function selectModule(id) {
   if (mod && mod.id === m.id) return;
   if (mod) save();
   mod = m;
-  PARAMS = m.params.concat(m.kind === 'sdf' ? DEFORM_PARAMS : []);
+  PARAMS = m.params.concat(m.kind === 'sdf' ? DEFORM_PARAMS : (window.LAB_AUDIO ? window.LAB_AUDIO.params : []));
   SLOTS = m.slots.concat(m.kind === 'sdf' ? [DEFORM_SLOT] : []);
   DEF_P = {}; PARAMS.forEach(p => DEF_P[p[1]] = p[6]);
   DEF_S = {}; SLOTS.forEach(s => DEF_S[s[0]] = s[3]);
@@ -675,6 +702,8 @@ function selectModule(id) {
   $('mapLegend').innerHTML = '<b>Starter mapping.</b> ' + m.starterText +
     '<br><b>Learn pose:</b> set the sliders to a look, hold a hand pose, tap Learn pose. With two or more learned poses, your hands blend between them and every parameter moves at once.';
   $('photoBtn').hidden = m.kind !== 'image'; $('camTex').hidden = m.kind !== 'image';
+  $('soundOn').hidden = m.kind !== 'image'; $('sSwitch').hidden = m.kind !== 'image'; $('soundLater').hidden = m.kind === 'image';
+  if (m.kind !== 'image' && window.LAB_AUDIO && window.LAB_AUDIO.running) { window.LAB_AUDIO.stop(); $('sSwitch').setAttribute('aria-checked', 'false'); }
   [...$('tabs').children].forEach(a => { if (a.dataset.id) a.toggleAttribute('aria-current', a.dataset.id === m.id); if (a.dataset.id === m.id) a.setAttribute('aria-current', 'page'); });
   G.filt = {}; loadSamples();
   dirty = true;

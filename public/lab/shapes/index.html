@@ -139,6 +139,24 @@ textarea.bad { border-color: var(--bad); }
       <p class="legend" id="mapLegend"></p>
     </section>
 
+    <section class="gesture" aria-label="Sound">
+      <div class="g-head">
+        <div><b>Sound</b><span class="g-sub">Derived from the image · plays even on silent</span></div>
+        <button id="sSwitch" class="switch" role="switch" aria-checked="false" aria-label="Sound"><span></span></button>
+      </div>
+      <div id="soundOn">
+        <div class="status" id="sStatus" role="status">Tap the switch to hear the image.</div>
+        <p class="legend"><b>How it maps.</b> Timbre: the brightness along a circle around the warp center is the waveform (wave terrain), so a k-fold kaleidoscope is heard as the k-th harmonic. Harmony: hues become pitch classes around the circle of fifths; the strongest hues form the chord. Rhythm: edge density sets the Euclidean melody hits, brightness sets percussion, and loops of coprime length realign only after their product (Chinese Remainder Theorem). Melody: powers of a primitive root mod 13. With tempo lock on, the kaleidoscope turns one fold per bar and ripples pulse on the beat. Sound sliders are in the Sound group below.</p>
+        <details>
+          <summary>Sound formulas (JavaScript)</summary>
+          <div class="grp"><div id="sFormulas" class="grp" style="padding:0"></div>
+            <div class="row"><button class="primary" id="sfApply">Apply sound formulas</button></div>
+            <div class="status" id="sfStatus" role="status"></div></div>
+        </details>
+      </div>
+      <p class="note" id="soundLater" hidden>Sound for this shape comes in the next milestone: a slice of the 3D shape becomes the waveform, plus bell partials. Open Photo Warp to hear an image now.</p>
+    </section>
+
     <input class="search" id="filter" type="search" placeholder="Filter parameters" aria-label="Filter parameters">
     <div id="groups"></div>
 
@@ -173,6 +191,7 @@ textarea.bad { border-color: var(--bad); }
 <script>window.LAB_MODULES = [];</script>
 <script src="modules/spire.js"></script>
 <script src="modules/photo-warp.js"></script>
+<script src="audio.js"></script>
 <script src="core.js"></script>
 </body>
 </html>
