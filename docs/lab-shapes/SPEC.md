@@ -43,6 +43,7 @@ Static files, no build step, served by GitHub Pages from `public/lab/shapes/`.
 | `modules/photo-warp.js` | Photo warper (kind `image`) |
 | `modules/lattice-tower.js` | Exoskeleton Tower (kind `sdf`): floor-index sequence tower + p/q moiré exoskeleton + golden-angle rooftop |
 | `modules/autumn-pitch.js` | Autumn Pitch (kind `sdf`): lobed oak-leaf plates on jittered lattices, falling-paper descent, dispersal-kernel leaf litter, senescing tree lines, mowing-stripe sheen |
+| `modules/one-line.js` | One Line (kind `image`): one unbroken pen stroke integrated from a curvature spectrum, hashed kink pulses and a superellipse fence; curvature-driven ink width/pooling; mod-k folds |
 
 Modules self-register: `window.LAB_MODULES.push(module)`. The view is routed by URL hash (`#spire`, `#photo-warp`).
 
@@ -168,3 +169,4 @@ Pipeline: after each frame (≈15 Hz) the image shader renders into a 128×128 f
 |---|---|---|
 | 2026-10-31 | `lattice-tower` | Building as a function of floor index n (plan, rotation, scale, notch, window rule mod m); exoskeleton rod spacing = bay·p/q → moiré, realigns every lcm; rooftop items on golden-angle positions |
 | 2026-10-31 | `autumn-pitch` | Leaf fall as a process: leaf outline = sine envelope × triangle-wave lobes (swept); airborne leaves follow the falling-paper path (sideways A·sin φ, roll θ·cos φ, φ locked to height) on up to 3 superposed lattices sheared by wind; litter density = exponential dispersal kernel from tree lines; crowns senesce green→yellow→red on hashed onsets, sun-exposed first; mowing stripes = view-dependent blade sheen. Camera-distance LOD for leaf fields; core now animates any module whose `animatedBy` param is non-zero (sdf included) |
+| 2026-10-31 | `one-line` | Drawing as a process: heading θ(s) = ∫κ ds, position = ∫(cos θ, sin θ) ds, per pixel in the fragment shader (min distance over the integrated polyline). κ = sine spectrum (slow/mid/quick wander + scallop term gated into bursts) + value-noise tremor + hashed Gaussian kink pulses (area ≈ 2π → tight loops) + fence steering κ ∝ cross(heading, inward normal) ramped by superellipse distance. Ink width and pooling ∝ |κ|, ink runs dry along s, bleed halo; mirror + polar mod-k folds; photo/camera as paper or ink tint. First `image` module with no texture warp, so sound reads the line itself along the orbit |
