@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Shape Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: instrument bench — live view (sticky on phones) beside a searchable control rack. Single dark look on purpose. */
+:root {
+  --bg: #0c0d0e;
+  --panel: #131618;
+  --line: #24292c;
+  --fg: #e6e8e6;
+  --muted: #8a9291;
+  --accent: #d9875f;
+  --accent2: #7fb7a8;
+  --bad: #e7806c;
+  --display: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--display); font-size: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px; box-sizing: border-box;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.app { display: grid; gap: 14px; max-width: 1320px; margin: 0 auto; }
+.stage { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; height: 50vh; min-height: 280px;
+  border-radius: 14px; overflow: hidden; background: #111; border: 1px solid var(--line); }
+@media (min-width: 900px) {
+  html, body { height: 100%; }
+  body { overflow: hidden; }
+  .app { height: 100%; grid-template-columns: minmax(0, 1fr) 390px; }
+  .stage { position: relative; top: 0; height: auto; }
+  .bench { overflow-y: auto; padding-right: 4px; }
+}
+#c { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+#c:active { cursor: grabbing; }
+.hint { position: absolute; left: 12px; bottom: 10px; font: 11px/1.4 var(--mono); color: #ffffffcc; text-shadow: 0 1px 2px #000a; pointer-events: none; }
+.err { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; background: var(--bg); }
+.cam { position: absolute; top: 10px; right: 10px; width: 104px; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #000; pointer-events: none; }
+.cam video, .cam canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.bench { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding-bottom: 24px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs a { font: 600 12.5px var(--display); color: var(--muted); text-decoration: none; padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px; }
+.tabs a[aria-current=page] { color: #140c08; background: var(--accent); border-color: var(--accent); }
+.tabs a:hover { border-color: #3c4448; }
+h1 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+.sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+button, .btn { font: 600 12.5px var(--display); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; cursor: pointer; display: inline-block; }
+button:hover, .btn:hover { border-color: #3c4448; }
+button[aria-pressed=true] { border-color: var(--accent); color: var(--accent); }
+button.primary { background: var(--accent); color: #140c08; border-color: var(--accent); }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.search { width: 100%; box-sizing: border-box; font: 13px var(--display); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
+details { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+summary { cursor: pointer; padding: 11px 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary .count { font: 500 11px var(--mono); letter-spacing: 0; color: #606a69; }
+details[open] summary { color: var(--fg); border-bottom: 1px solid var(--line); }
+.grp { padding: 10px 12px 12px; display: grid; gap: 11px; }
+.prm { display: grid; grid-template-columns: minmax(0, 1fr) 74px; gap: 4px 10px; align-items: center; }
+.prm label { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; }
+.prm label code { font: 10.5px var(--mono); color: #606a69; }
+.prm input[type=range] { width: 100%; accent-color: var(--accent); margin: 0; }
+.prm input[type=number] { width: 100%; box-sizing: border-box; font: 12px var(--mono); color: var(--fg); background: #0b0d0e; border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font-variant-numeric: tabular-nums; }
+.grp-reset { justify-self: start; }
+.slot { display: grid; gap: 6px; }
+.slot-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.slot-head b { font-size: 12.5px; }
+.slot-head button { padding: 3px 8px; font-size: 11px; }
+.slot p { margin: 0; font-size: 11.5px; line-height: 1.45; color: var(--muted); }
+.slot p code, .note code { font-family: var(--mono); color: #b3bcba; font-size: 11px; }
+textarea { width: 100%; box-sizing: border-box; min-height: 58px; resize: vertical; font: 11.5px/1.5 var(--mono); color: #ece2da; background: #080909; border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; }
+textarea.bad { border-color: var(--bad); }
+.status { font: 11.5px/1.5 var(--mono); color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.status.bad { color: var(--bad); }
+.status.ok { color: var(--accent2); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.note { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 0; }
+.gesture { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 12px; display: grid; gap: 10px; }
+.g-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.g-head b { display: block; font-size: 14px; }
+.g-sub { font-size: 11.5px; color: var(--muted); }
+.switch { width: 48px; height: 28px; border-radius: 14px; padding: 0; position: relative; background: #2a3134; border: 1px solid var(--line); flex: none; }
+.switch span { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--muted); transition: transform .15s; }
+.switch[aria-checked=true] { background: var(--accent); border-color: var(--accent); }
+.switch[aria-checked=true] span { transform: translateX(20px); background: #0b0d0e; }
+.legend { font-size: 11.5px; color: var(--muted); line-height: 1.65; margin: 0; }
+.legend b { color: var(--fg); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .switch span { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage" id="stage">
+    <canvas id="c" aria-label="Live shape view"></canvas>
+    <div class="hint" id="hint"></div>
+    <div class="cam" id="camBox" hidden><video id="cam" playsinline muted autoplay></video><canvas id="camOverlay"></canvas></div>
+    <div class="err" id="err" hidden>WebGL isn't available in this browser, so the view can't render.</div>
+  </div>
+
+  <aside class="bench">
+    <nav class="tabs" id="tabs" aria-label="Shapes"></nav>
+    <div>
+      <h1 id="title">Shape Lab</h1>
+      <p class="sub" id="desc"></p>
+    </div>
+    <div class="tools">
+      <button id="resetView">Reset view</button>
+      <button id="seed">New pattern</button>
+      <label class="btn" id="photoBtn" for="photoIn" hidden>Load photo</label>
+      <input class="vh" type="file" id="photoIn" accept="image/*">
+      <button id="camTex" aria-pressed="false" hidden>Warp live camera</button>
+    </div>
+
+    <section class="gesture" aria-label="Hand control">
+      <div class="g-head">
+        <div><b>Hand control</b><span class="g-sub">Front camera · tracking runs on this device</span></div>
+        <button id="gSwitch" class="switch" role="switch" aria-checked="true" aria-label="Hand control"><span></span></button>
+      </div>
+      <div class="status" id="gStatus" role="status">Hand control starts when the page loads.</div>
+      <div class="row">
+        <button id="camStart" class="primary" hidden>Start camera</button>
+        <button id="gFreeze" aria-pressed="false">Freeze</button>
+        <button id="gLearn" class="primary">Learn pose</button>
+        <button id="gClear">Clear poses</button>
+      </div>
+      <p class="note" id="gCount"></p>
+      <p class="legend" id="mapLegend"></p>
+    </section>
+
+    <input class="search" id="filter" type="search" placeholder="Filter parameters" aria-label="Filter parameters">
+    <div id="groups"></div>
+
+    <details id="formulas">
+      <summary>Formulas (operators) <span class="count" id="slotCount"></span></summary>
+      <div class="grp">
+        <p class="note">Each box is one GLSL expression. Use any <code>P_…</code> uniform shown beside a slider, the listed locals, and helpers <code>sdBox</code>, <code>sdBox2</code>, <code>sdOct2</code>, <code>sdArch</code>, <code>sdPointedArch</code>, <code>sdCapsule</code>, <code>smin</code>, <code>noise2/3</code>, <code>fbm2/3</code>, <code>hash</code>. Write floats with a decimal point (<code>2.0</code>).</p>
+        <div id="slots" class="grp" style="padding:0"></div>
+        <div class="row">
+          <button class="primary" id="apply">Apply formulas</button>
+          <button id="resetSlots">Reset all formulas</button>
+        </div>
+        <div class="status" id="status" role="status"></div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Presets</summary>
+      <div class="grp">
+        <p class="note">Settings save in this browser, per shape. Copy a preset to keep or share it, or paste one to load it.</p>
+        <div class="row">
+          <button id="copyPreset">Copy preset</button>
+          <button id="loadPreset">Load pasted preset</button>
+          <button id="resetAll">Reset everything</button>
+        </div>
+        <textarea id="presetBox" aria-label="Preset JSON" placeholder="Paste preset JSON here"></textarea>
+        <div class="status" id="presetStatus" role="status"></div>
+      </div>
+    </details>
+  </aside>
+</div>
+<script>window.LAB_MODULES = [];</script>
+<script src="modules/spire.js"></script>
+<script src="modules/photo-warp.js"></script>
+<script src="core.js"></script>
+</body>
+</html>
