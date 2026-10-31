@@ -1,33 +1,9 @@
-import { clamp } from "./controller.js";
+import { clamp } from "./controller.js?v=0.2.0";
 const MP = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 const MODEL =
   "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
-const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-export function handFeatures(lm) {
-  if (
-    !Array.isArray(lm) ||
-    lm.length !== 21 ||
-    lm.some((p) => !Number.isFinite(p.x) || !Number.isFinite(p.y))
-  )
-    return null;
-  const size = distance(lm[0], lm[9]);
-  if (
-    size < 0.035 ||
-    size > 0.65 ||
-    lm.some((p) => p.x < 0.015 || p.x > 0.985 || p.y < 0.015 || p.y > 0.985)
-  )
-    return null;
-  const curl = [8, 12, 16, 20].map((i) =>
-    clamp((2 - distance(lm[i], lm[0]) / size) / 1.1, 0, 1),
-  );
-  return {
-    x: (lm[0].x + lm[9].x) / 2,
-    y: (lm[0].y + lm[9].y) / 2,
-    size,
-    curl: curl.reduce((s, x) => s + x, 0) / 4,
-    tilt: Math.atan2(lm[9].x - lm[0].x, lm[0].y - lm[9].y),
-  };
-}
+import { handFeatures, mapHand } from "./puppet.js?v=0.2.0";
+export { handFeatures } from "./puppet.js?v=0.2.0";
 export class HandTracker {
   constructor(video, status, onPoints) {
     this.video = video;
@@ -49,7 +25,7 @@ export class HandTracker {
     if (this.worker || this.detector) return;
     let worker;
     try {
-      worker = new Worker(new URL("./tracker-worker.js", import.meta.url));
+      worker = new Worker(new URL("./tracker-worker.js?v=0.2.0", import.meta.url));
       await new Promise((resolve, reject) => {
         const timer = setTimeout(
           () => reject(Error("Worker initialization timed out")),
@@ -192,7 +168,7 @@ export class HandTracker {
     this.neutral = null;
     this.latest = null;
     this.status(
-      "Show your whole hand behind the phone. Hold it still to calibrate.",
+      "Show a relaxed open hand behind the phone. Hold it still to calibrate.",
     );
   }
   accept(landmarks, time) {
@@ -216,8 +192,10 @@ export class HandTracker {
               this.samples.reduce((s, x) => s + x[k], 0) / 20,
             ]),
           );
+          this.neutral.fingers = features.fingers.map((f) => ({ ...f }));
+          this.neutral.thumb = features.thumb;
           this.status(
-            "Ready. Move sideways to extend; return to center to recover.",
+            "Ready. Index/middle work the arms; ring/little work the legs.",
           );
         }
       }
@@ -259,24 +237,9 @@ export class HandTracker {
       this.fail("Tracking interrupted. Open Menu to restart the camera.");
     }
   }
-  input(now) {
+  input(now, options = {}) {
     if (!this.neutral || !this.latest || now - this.lastSeen > 220)
       return { active: false };
-    const a = this.latest,
-      n = this.neutral;
-    return {
-      active: true,
-      extension: clamp(
-        (Math.abs(a.x - n.x) / Math.max(0.1, n.size) - 0.14) / 1.15,
-        0,
-        1,
-      ),
-      aim: clamp(
-        1.3 - ((a.y - n.y) / Math.max(0.12, n.size)) * 0.48,
-        0.75,
-        1.55,
-      ),
-      lean: clamp((a.tilt - n.tilt) * 0.1, -0.1, 0.1),
-    };
+    return mapHand(this.latest, this.neutral, options);
   }
 }

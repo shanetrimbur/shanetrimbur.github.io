@@ -1,45 +1,48 @@
-# Hand Fighter prototype
+# Hand Fighter — finger puppet prototype (v0.2)
 
-Static entry: `public/lab/fight/index.html`, published by the existing Astro Pages workflow at `/lab/fight/`.
+Static entry: `public/lab/fight/index.html`, published by the existing Astro Pages workflow at `/lab/fight/`. Pages is configured for **GitHub Actions**, not branch publishing. Do not re-enable the competing legacy branch publisher.
 
-No new production packages or backend. Three.js is pinned and vendored; MediaPipe 0.10.14 and its hand model load only after Start camera. Classic-worker CPU tracking (MediaPipe’s WASM loader uses importScripts) is preferred; a rate-limited GPU/CPU main-thread fallback supports browsers without the worker path. No camera frames leave the device. HTTPS and user camera permission required.
+No backend or camera upload. The shared BodyParts3D geometry is 2,542,600 bytes for both fighters. Three.js is pinned and minified; MediaPipe 0.10.14 and its hand model load only after Start camera. Classic-worker CPU tracking is preferred (its WASM loader requires importScripts); rate-limited GPU/CPU main-thread fallback remains available. HTTPS and camera permission are required.
 
-## Rules and boundaries
+## Controls
 
-- `controller.js`: pure 60 Hz kinematic game state. Root Y is not driven by hand tracking. Separate root collision/separation, clamped controls, capped extension/aim speeds, tracking-loss guard, retract-before-limb-switch, one damage event per extension, fixed damage, bounded catch-up after suspension. Computer and player use the same update rules.
-- `rig.js`: reads the existing MSKIN001 mesh; GPU skinning with the original inverse bind transforms. Two-link IK keeps bone lengths constant and fixes bend planes. Right support foot stays grounded during a left kick. This is NOT a dynamic balance solver, ragdoll, or biomechanically validated animation.
-- `tracking.js` / `tracker-worker.js`: rear camera by default (no silent front-camera substitution), whole-hand visibility checks, 20 stable samples to calibrate, 220 ms tracking timeout, bounded relative palm input. Moving sideways extends; returning to neutral retracts. Vertical palm displacement aims; wrist tilt adds slight lean. Individual fingers do not directly control separate limbs in this first experiment.
-- `main.js`: arena, touch and keyboard fallback, hold-to-move pads, top pause menu, camera cleanup on background, opponent selection and round reset.
-- Assets: same BodyParts3D mesh as Tracer, closed-hand corrections baked once; no video. Characters share geometry. Separate source attribution in CREDITS.md and the menu.
+- **Index / middle:** independently bend and extend the lead/rear arm. Curl retracts; straighten extends. Spreading fingers changes the arm target and elbow bend plane. Both arms can move at once. Hold the palm a little forward and alternate finger curls for jabs/crosses.
+- **Ring / little:** curl to lift the lead/rear leg; move the hand toward the opponent to extend the kick. One foot remains grounded. If both are curled, the first active leg retains priority until lowered.
+- **Palm / wrist / thumb:** palm height aims; lowering it also crouches. Wrist tilt leans the torso; thumb spread twists it. Bone lengths and reach remain bounded.
+- **Direction:** signed screen displacement multiplied by fighter facing. Left fighter punches toward screen-right; right fighter punches toward screen-left. Moving away retracts; no absolute-value mapping. Optional mirror setting applies to BOTH preview and input. Front-camera selection enables mirroring by default.
+- **Thumb drag:** floating joystick anywhere in the camera arena or on the lower strip. Drag right/left moves right/left on screen, regardless of fighter side; release/cancel/blur stops. No step buttons.
+- **Top menu:** choose left/right fighter (starts a fresh round), dummy/sparring partner, camera, mirroring, recalibration, touch practice, reset. Opening it pauses and releases held input.
+- **Touch practice:** arena drag strikes in the direction of the opponent; the lower strip moves. Select one of four practice limbs. Keyboard 1–4 selects; A/D moves left/right, J strikes, G guards, up/down aims.
+
+## Files and boundaries
+
+- `puppet.js`: 21-landmark joint-angle features, finger spread, signed and mirrored mapping, pure thumb mapping.
+- `tracking.js` / `tracker-worker.js`: camera, stable neutral calibration, stale/lost tracking rejection, worker, background cleanup. Tracking loss retracts all four limbs to guard.
+- `controller.js`: fixed 60 Hz update, four independent limb channels, AI/player shared rules, ground support selection, capped target speeds, root separation, one hit per extension, bounded damage and combo feedback. Thumb travel is allowed during strikes. No raw landmark impulses.
+- `rig.js`: original MSKIN001 GPU skinning and source inverse bind matrices; analytic two-link IK. All four limb targets, crouch and torso lean/twist drive the existing anatomy. Targets stop at the opponent's body. This remains kinematic arcade movement, not dynamic balance/ragdoll or validated biomechanics; walking can slide at contact transitions.
+- `main.js` / HTML / CSS: renderer, camera preview, floating joystick, finger meters, side selection, menu, feedback.
+- `assets/`: derived licensed anatomy only; provenance and limitations in CREDITS.md. No source videos, purchased assets, textbooks or Tracer app code.
+
+First-party runtime imports and CSS carry `v=0.2.0` URLs to avoid old/new module mixtures in phone caches. Bump this together for future releases. Three.js and the unchanged mesh stay cacheable.
 
 ## Verification
 
 `node --test tools/fight/controller.test.mjs`
 
-Serve `public/` locally with a static HTTP server, then open `/lab/fight/`. Localhost is a secure camera context. Public iPhone testing requires the Pages HTTPS URL. Diagnostic snapshot: `window.handFighter.snapshot()`.
+The tests cover signed/mirrored controls, independent fingers, both player sides, screen-relative thumb movement/release, tracking loss, simultaneous attacks, damage/guard/rearm, hostile inputs, clock suspension, and the actual anatomy across 288 pose combinations. Fixed limb lengths and a supporting foot are checked with the real mesh.
 
-Device acceptance on Orange remains manual:
-1. Rear camera permission and real hand tracking; whole-hand visibility at a comfortable distance.
-2. Calibrate, extend/retract and aim, switch each limb, step and guard with the holding thumb.
-3. Hide labels, use the top menu, rotate the phone, lose tracking, background/return, restart camera.
-4. Confirm no foot skating unacceptable for play, mesh twisting, head/limb clipping, or excessive heat after 5 minutes.
-5. Sparring: contact and blocking, health, round end, reset. Frame rate and perceived response with tracking enabled.
-
-All asset URLs are relative so this can be hosted beneath `/lab/fight/`. Existing Shapes and Tracer are unchanged. Online multiplayer, recording export, finger-per-limb mapping, and production biomechanics are outside this first prototype.
-
-The static demo and its tests are excluded from Astro’s TypeScript project to avoid type-inferencing the vendored renderer. Their controller/rig tests and browser checks run separately.
-
-## Verified 2026-10-31
-
-- Eight Node tests passed, including 30,000 hostile-input updates and 108 actual mesh pose/distance combinations; skin bounds remained above the floor and finite.
-- Chromium and WebKit: 390×844 portrait and 844×390 landscape, real anatomy render, stepping, hit/health, kick, hide/show pad labels, pause, round reset and opponent selection; no uncaught browser exceptions.
-- Actual MediaPipe model initialized in a classic worker and inferred a blank 640×480 frame in both engines. This verifies loading and inference infrastructure, not accuracy with a physical hand.
-- Astro production build passed (existing hints in Shapes/portfolio files).
-- Orange camera ergonomics, hand accuracy, heat, and real-device frame rate still need testing.
-
-Optional browser smoke test (requires Playwright installed separately):
+Optional browser smoke test, using Playwright installed separately:
 `node tools/fight/browser-check.cjs`
 
-Use `PLAYWRIGHT_MODULE` to point at an existing Playwright install, `CHROME_EXECUTABLE` for installed Chrome, `PLAYWRIGHT_BROWSERS_PATH` for an existing WebKit download, and `SCREENSHOT_DIR` for images. By default local file responses are intercepted so no preview server is required. Set `FIGHT_URL` to test the published URL instead. Tests use no real camera.
+Environment options: `PLAYWRIGHT_MODULE`, `CHROME_EXECUTABLE`, `PLAYWRIGHT_BROWSERS_PATH`, `SCREENSHOT_DIR`, and `TEST_BROWSER=chromium|webkit`. Default local files are intercepted, so no preview server is needed. `FIGHT_URL` tests a deployed URL. Browser tests exercise actual UI/control/rig readers; synthetic media acquisition and landmark worker results replace hardware/ML only. They do not establish real-camera accuracy. The actual MediaPipe worker separately initialized and inferred a blank frame in both Chromium and WebKit during v0.1 verification; that worker is unchanged.
 
-The mesh export is reproducible with `tools/fight/export_anatomy.py`; byte-for-byte re-export was checked. Original inputs stay in Motion-Runtime.
+The static demo and tests are excluded from Astro's TypeScript project to avoid type-inferencing the vendored renderer; controller/rig tests run in the Pages workflow. Asset export is reproducible via `tools/fight/export_anatomy.py` from the private runtime inputs.
+
+## Orange acceptance still required
+
+1. Rear-camera ergonomics, neutral calibration and correct physical right/left alignment. If needed, mirror preview and input together in Menu.
+2. Index/middle independence, then ring/little knee lift and kicks. Check wrist/torso control and combinations.
+3. Thumb drag/release during punches/kicks, both player sides, menu pause, tracking loss, background/restart and rotation.
+4. Frame rate, latency and heat after five minutes; acceptable shoulder/wrist deformation and foot contact.
+
+Online multiplayer, recording export, finger-bone rendering, dynamic ragdolls and production biomechanics remain outside this prototype. Shapes and Tracer remain unchanged.

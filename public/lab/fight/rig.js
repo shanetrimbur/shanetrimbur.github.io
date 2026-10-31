@@ -186,53 +186,76 @@ export class AnatomyFighter {
     this.group.position.x = f.x;
     this.group.rotation.y = (f.facing * Math.PI) / 2;
     for (const b of this.bones) b.quaternion.identity();
-    this.bones[0].position.y = 0.84;
+    this.bones[0].position.y = 0.84 - (f.crouch || 0);
     this.bones[2].rotation.x = f.lean - (f.recovery > 0 ? 0.06 : 0);
+    this.bones[2].rotation.y = f.twist || 0;
     this.poseSpace.updateMatrixWorld(true);
-    const kick = f.limb === "kick" ? f.extension : 0;
-    // The right foot is always the support foot during a kick. No root Y input exists.
+    const kicking = f.contact !== "both";
     const stride =
-      Math.abs(f.moving) > 0.05 && kick < 0.1 ? Math.sin(f.walk) * 0.075 : 0;
-    const liftL =
-      Math.abs(f.moving) > 0.05 ? Math.max(0, Math.cos(f.walk)) * 0.025 : 0;
-    const liftR =
-      Math.abs(f.moving) > 0.05 ? Math.max(0, -Math.cos(f.walk)) * 0.025 : 0;
-    const footL = new T.Vector3(
-      0.12,
-      0.095 + liftL + kick * Math.min(0.74, f.aim - 0.1),
-      0.17 + stride + kick * 0.54,
-    );
-    // Contact stop: do not let the target pass through the opponent's torso.
-    footL.z = Math.min(footL.z, Math.max(0.18, opponentDistance - 0.25));
-    const footR = new T.Vector3(
-      -0.12,
-      0.095 + (kick > 0.1 ? 0 : liftR),
-      -0.2 - stride,
-    );
-    this.limb(14, 15, 16, footL, new T.Vector3(0.15, 0.5, 1.4));
-    this.limb(18, 19, 20, footR, new T.Vector3(-0.15, 0.5, 1.4));
-    this.level(16, qtmp.setFromAxisAngle(new T.Vector3(1, 0, 0), kick * -0.9));
-    this.level(20);
+      Math.abs(f.moving) > 0.05 && !kicking ? Math.sin(f.walk) * 0.08 : 0;
+    for (const [upper, lower, foot, sign, name, restZ] of [
+      [14, 15, 16, 1, "kick", 0.17],
+      [18, 19, 20, -1, "rearKick", -0.2],
+    ]) {
+      const p = f.limbs[name],
+        active = f.activeLeg === name;
+      const lift = active ? p.lift : 0,
+        ext = active ? p.extension : 0;
+      const walkingLift =
+        Math.abs(f.moving) > 0.05 && !kicking
+          ? Math.max(0, Math.cos(f.walk) * sign) * 0.025
+          : 0;
+      const target = new T.Vector3(
+        sign * (0.12 + lift * p.spread * 0.09),
+        0.095 +
+          walkingLift +
+          lift * 0.24 +
+          ext * Math.min(0.65, Math.max(0.1, p.aim - 0.75)),
+        restZ +
+          sign * stride +
+          lift * (sign === 1 ? -0.05 : 0.14) +
+          ext * (sign === 1 ? 0.59 : 0.72),
+      );
+      target.z = Math.min(target.z, Math.max(0.18, opponentDistance - 0.25));
+      this.limb(
+        upper,
+        lower,
+        foot,
+        target,
+        new T.Vector3(sign * (0.15 + p.spread * 0.1), 0.5, 1.4),
+      );
+      this.level(
+        foot,
+        qtmp.setFromAxisAngle(new T.Vector3(1, 0, 0), ext * -0.8 + lift * 0.2),
+      );
+    }
     for (const [upper, lower, hand, sign, name] of [
       [7, 8, 9, 1, "lead"],
       [11, 12, 13, -1, "rear"],
     ]) {
-      const ext = f.limb === name ? f.extension : 0;
+      const p = f.limbs[name],
+        ext = p.extension;
       const target = new T.Vector3(
-        sign * (0.13 - ext * 0.06),
-        (f.guard ? 1.39 : 1.3) * (1 - ext) + f.aim * ext,
-        0.22 + ext * 0.32,
+        sign * (0.12 + p.spread * 0.12),
+        f.guard ? 1.39 : p.aim - p.bend * 0.12,
+        0.1 + ext * 0.45,
       );
-      target.z = Math.min(target.z, Math.max(0.22, opponentDistance - 0.23));
+      target.z = Math.min(target.z, Math.max(0.16, opponentDistance - 0.23));
       this.limb(
         upper,
         lower,
         hand,
         target,
-        new T.Vector3(sign * 0.55, 0.92, 0.18),
+        new T.Vector3(
+          sign * (0.48 + p.spread * 0.12),
+          0.85 + p.bend * 0.25,
+          0.18,
+        ),
       );
-      // Wrist follows forearm; fingers use the same authored closed grip as Tracer.
-      this.bones[hand].quaternion.identity();
+      this.bones[hand].quaternion.setFromAxisAngle(
+        new T.Vector3(1, 0, 0),
+        p.spread * 0.25,
+      );
     }
     this.poseSpace.updateMatrixWorld(true);
     for (const m of this.materials) {

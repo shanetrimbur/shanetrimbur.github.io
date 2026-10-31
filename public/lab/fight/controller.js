@@ -1,70 +1,110 @@
-// Pure, fixed-step game rules. Camera coordinates never become body positions or impulses.
+// Fixed-step arcade puppetry. Four independent limb channels; root motion stays separate.
 export const STEP = 1 / 60;
+export const LIMBS = ["lead", "rear", "kick", "rearKick"];
 export const clamp = (v, lo, hi) =>
   Math.max(lo, Math.min(hi, Number.isFinite(v) ? v : lo));
-export function approach(value, target, speed, dt) {
-  return value + clamp(target - value, -speed * dt, speed * dt);
+export function approach(v, t, s, dt) {
+  return v + clamp(t - v, -s * dt, s * dt);
 }
+const isLeg = (name) => name === "kick" || name === "rearKick";
+const channel = () => ({
+  extension: 0,
+  aim: 1.3,
+  spread: 0,
+  bend: 0.8,
+  lift: 0,
+  armed: true,
+  hit: false,
+  cooldown: 0,
+});
 export function makeFighter(x, facing) {
   return {
     x,
     facing,
+    limbs: Object.fromEntries(LIMBS.map((n) => [n, channel()])),
     extension: 0,
     aim: 1.3,
     lean: 0,
+    twist: 0,
+    crouch: 0,
     limb: "lead",
     health: 100,
     guard: false,
     recovery: 0,
-    cooldown: 0,
-    armed: true,
-    hit: false,
     flash: 0,
     walk: 0,
     moving: 0,
     contact: "both",
+    activeLeg: null,
     strikes: 0,
     landed: 0,
+    combo: 0,
+    lastHit: -100,
   };
 }
-export function makeGame() {
+export function makeGame(playerIndex = 0) {
   return {
     fighters: [makeFighter(-0.49, 1), makeFighter(0.49, -1)],
+    playerIndex: playerIndex === 1 ? 1 : 0,
     time: 0,
     mode: "dummy",
     ended: false,
     events: [],
-    aiPhase: 0,
   };
 }
 export function safeInput(input = {}) {
   const active = input.active === true;
+  const selected = LIMBS.includes(input.limb) ? input.limb : "lead";
+  const limbs = Object.fromEntries(
+    LIMBS.map((name) => {
+      const source =
+        input.limbs?.[name] ||
+        (name === selected
+          ? {
+              extension: input.extension,
+              aim: input.aim,
+              lift: isLeg(name) ? input.extension : 0,
+            }
+          : {});
+      return [
+        name,
+        {
+          extension: active ? clamp(source.extension ?? 0, 0, 1) : 0,
+          lift: active ? clamp(source.lift ?? 0, 0, 1) : 0,
+          aim: active ? clamp(source.aim ?? 1.3, 0.65, 1.8) : 1.3,
+          spread: active ? clamp(source.spread ?? 0, -1, 1) : 0,
+          bend: active ? clamp(source.bend ?? 0.8, 0, 1) : 0.8,
+        },
+      ];
+    }),
+  );
   return {
-    extension: active ? clamp(input.extension, 0, 1) : 0,
-    aim: active ? clamp(input.aim, 0.75, 1.55) : 1.3,
-    lean: active ? clamp(input.lean, -0.1, 0.1) : 0,
-    limb: ["lead", "rear", "kick"].includes(input.limb) ? input.limb : "lead",
+    limbs,
+    lean: active ? clamp(input.lean ?? 0, -0.28, 0.28) : 0,
+    twist: active ? clamp(input.twist ?? 0, -0.35, 0.35) : 0,
+    crouch: active ? clamp(input.crouch ?? 0, 0, 0.2) : 0,
     move: clamp(input.move ?? 0, -1, 1),
     guard: input.guard === true || !active,
   };
 }
-export function aiInput(game) {
-  if (game.mode !== "spar") return { active: true, extension: 0, guard: false };
-  const phase = game.time % 3.2;
-  const distance = game.fighters[1].x - game.fighters[0].x;
-  const limb = Math.floor(game.time / 3.2) % 3 === 2 ? "kick" : "lead";
-  const desired = limb === "kick" ? 0.81 : 0.67;
+export function aiInput(game, index = 1 - game.playerIndex) {
+  if (game.mode !== "spar") return { active: true };
+  const phase = game.time % 2.4,
+    cycle = Math.floor(game.time / 2.4),
+    name = LIMBS[cycle % 4];
+  const d = Math.abs(game.fighters[index].x - game.fighters[1 - index].x),
+    desired = isLeg(name) ? 0.81 : 0.65;
+  const strike =
+    phase > 0.65 && phase < 1.25
+      ? Math.sin(((phase - 0.65) / 0.6) * Math.PI)
+      : 0;
   return {
     active: true,
-    limb,
-    extension:
-      phase > 1.1 && phase < 1.65
-        ? Math.sin(((phase - 1.1) / 0.55) * Math.PI)
-        : 0,
-    aim: 1.2 + 0.18 * Math.sin(game.time),
-    move:
-      distance > desired + 0.02 ? 0.45 : distance < desired - 0.06 ? -0.45 : 0,
-    guard: phase > 2.1,
+    limb: name,
+    extension: strike,
+    aim: 1.25 + 0.22 * Math.sin(game.time),
+    move: d > desired + 0.03 ? 0.6 : d < desired - 0.06 ? -0.4 : 0,
+    guard: phase > 1.55,
   };
 }
 export function stepGame(game, input, dt = STEP) {
@@ -72,83 +112,111 @@ export function stepGame(game, input, dt = STEP) {
   game.events = [];
   if (game.ended) return;
   game.time += dt;
-  const inputs = [safeInput(input), safeInput(aiInput(game))];
+  const inputs = game.fighters.map((_, i) =>
+    safeInput(i === game.playerIndex ? input : aiInput(game, i)),
+  );
   game.fighters.forEach((f, i) => {
     const c = inputs[i];
     f.flash = Math.max(0, f.flash - dt);
-    f.cooldown = Math.max(0, f.cooldown - dt);
     f.recovery = Math.max(0, f.recovery - dt);
     f.guard = c.guard;
-    // Changing limbs first retracts; prevents teleporting an extended fist into a foot.
-    if (f.limb !== c.limb && f.extension < 0.1) f.limb = c.limb;
-    const target =
-      f.limb === c.limb && !f.guard && f.recovery === 0 ? c.extension : 0;
-    f.extension = approach(
-      f.extension,
-      target,
-      target > f.extension ? 3.1 : 4.8,
-      dt,
+    // Both arms can move together. Legs share a support constraint, with hysteresis to prevent foot-flipping.
+    const l = c.limbs.kick.lift,
+      r = c.limbs.rearKick.lift;
+    if (!f.activeLeg) {
+      if (Math.max(l, r) > 0.18) f.activeLeg = l >= r ? "kick" : "rearKick";
+    } else if (
+      c.limbs[f.activeLeg].lift < 0.1 &&
+      f.limbs[f.activeLeg].lift < 0.1
+    )
+      f.activeLeg = null;
+    for (const name of LIMBS) {
+      const p = f.limbs[name],
+        target = c.limbs[name],
+        allowed = !isLeg(name) || f.activeLeg === name;
+      p.cooldown = Math.max(0, p.cooldown - dt);
+      const ext = allowed && !f.guard ? target.extension : 0;
+      p.extension = approach(p.extension, ext, ext > p.extension ? 7 : 9, dt);
+      p.lift = approach(p.lift, allowed && !f.guard ? target.lift : 0, 6, dt);
+      p.aim = approach(p.aim, target.aim, 3.8, dt);
+      p.spread = approach(p.spread, target.spread, 5, dt);
+      p.bend = approach(p.bend, target.bend, 6, dt);
+      if (p.extension < 0.46) {
+        p.armed = true;
+        p.hit = false;
+      }
+      if (p.extension > 0.68 && p.armed && !p.cooldown) {
+        p.armed = false;
+        p.cooldown = 0.22;
+        f.strikes++;
+      }
+    }
+    f.lean = approach(f.lean, c.lean, 1.8, dt);
+    f.twist = approach(f.twist, c.twist, 2.5, dt);
+    f.crouch = approach(f.crouch, c.crouch, 0.65, dt);
+    f.limb = LIMBS.reduce((a, b) =>
+      f.limbs[a].extension >= f.limbs[b].extension ? a : b,
     );
-    f.aim = approach(f.aim, c.aim, 1.5, dt);
-    f.lean = approach(f.lean, c.lean, 0.4, dt);
-    if (f.extension < 0.22) {
-      f.armed = true;
-      f.hit = false;
-    }
-    if (f.extension > 0.48 && f.armed && !f.cooldown) {
-      f.armed = false;
-      f.strikes++;
-      f.cooldown = 0.38;
-    }
-    const supportLocked = f.limb === "kick" && f.extension > 0.1;
-    const speed =
-      (supportLocked ? 0 : c.move) *
-      (f.extension > 0.3 ? 0.16 : 0.7) *
-      (f.guard ? 0.5 : 1);
+    f.extension = f.limbs[f.limb].extension;
+    f.aim = f.limbs[f.limb].aim;
+    const kicking = f.activeLeg && f.limbs[f.activeLeg].lift > 0.12;
+    // Thumb travel remains available during strikes; a supporting foot always stays on the floor.
+    const speed = c.move * (kicking ? 0.48 : 1.05) * (f.guard ? 0.75 : 1);
     f.moving = speed;
     f.x = clamp(f.x + f.facing * speed * dt, -1.45, 1.45);
     f.walk += Math.abs(speed) * dt * 9;
-    f.contact = f.limb === "kick" && f.extension > 0.15 ? "right" : "both";
+    f.contact = kicking ? (f.activeLeg === "kick" ? "right" : "left") : "both";
   });
   const [a, b] = game.fighters;
-  // Character collision: bounded roots cannot cross, fly, or collapse together.
   if (b.x - a.x < 0.57) {
-    const center = clamp((a.x + b.x) / 2, -1.165, 1.165);
-    a.x = center - 0.285;
-    b.x = center + 0.285;
+    const mid = clamp((a.x + b.x) / 2, -1.165, 1.165);
+    a.x = mid - 0.285;
+    b.x = mid + 0.285;
   }
-  game.fighters.forEach((f, i) => {
-    const other = game.fighters[1 - i];
-    const reach = f.limb === "kick" ? 0.93 : 0.72;
-    if (
-      !f.armed &&
-      !f.hit &&
-      f.extension > 0.7 &&
-      Math.abs(f.x - other.x) < reach &&
-      !f.recovery
-    ) {
-      f.hit = true;
-      f.landed++;
-      other.flash = 0.18;
-      const blocked = other.guard;
-      other.health = Math.max(
-        0,
-        other.health - (blocked ? 2 : f.limb === "kick" ? 12 : 8),
-      );
-      other.recovery = blocked ? 0.09 : 0.2;
-      game.events.push({
-        type: blocked ? "block" : "hit",
-        attacker: i,
-        limb: f.limb,
-      });
-      if (!other.health) {
-        game.ended = true;
-        game.events.push({ type: "round", winner: i });
+  // Collect simultaneous contacts before applying recovery, so neither side wins by array order.
+  const hits = [];
+  game.fighters.forEach((f, i) =>
+    LIMBS.forEach((name) => {
+      const p = f.limbs[name],
+        reach = isLeg(name) ? 0.93 : 0.73;
+      if (
+        !p.armed &&
+        !p.hit &&
+        p.extension > 0.74 &&
+        Math.abs(f.x - game.fighters[1 - i].x) < reach
+      ) {
+        p.hit = true;
+        hits.push({ attacker: i, limb: name });
       }
-    }
-  });
+    }),
+  );
+  for (const hit of hits) {
+    const f = game.fighters[hit.attacker],
+      other = game.fighters[1 - hit.attacker],
+      blocked = other.guard;
+    f.landed++;
+    f.combo = game.time - f.lastHit < 1.1 ? f.combo + 1 : 1;
+    f.lastHit = game.time;
+    other.flash = 0.18;
+    other.health = Math.max(
+      0,
+      other.health - (blocked ? 1 : isLeg(hit.limb) ? 10 : 6),
+    );
+    other.recovery = blocked ? 0.06 : 0.14;
+    game.events.push({
+      ...hit,
+      type: blocked ? "block" : "hit",
+      combo: f.combo,
+    });
+  }
+  if (game.fighters.some((f) => !f.health)) {
+    game.ended = true;
+    game.events.push({
+      type: "round",
+      winner: a.health === b.health ? null : a.health > b.health ? 0 : 1,
+    });
+  }
 }
-// Bounded catch-up: a suspended tab never produces seconds of delayed attacks.
 export class FixedClock {
   constructor() {
     this.last = null;
@@ -165,12 +233,12 @@ export class FixedClock {
     }
     this.accumulator += clamp((now - this.last) / 1000, 0, 0.08);
     this.last = now;
-    let count = 0;
-    while (this.accumulator >= STEP && count < 5) {
+    let n = 0;
+    while (this.accumulator >= STEP && n < 5) {
       callback(STEP);
       this.accumulator -= STEP;
-      count++;
+      n++;
     }
-    return count;
+    return n;
   }
 }

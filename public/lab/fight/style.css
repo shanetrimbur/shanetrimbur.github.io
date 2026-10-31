@@ -548,3 +548,196 @@ details p {
     font-size: 9px;
   }
 }
+/* v0.2: a floating drag replaces directional buttons. Menu remains outside its surface. */
+#fingerMap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 8px 0 12px;
+}
+#fingerMap span {
+  position: relative;
+  font:
+    7px -apple-system,
+    sans-serif;
+  color: var(--muted);
+  letter-spacing: 1px;
+  padding: 0 0 7px;
+  border-bottom: 2px solid #ffffff12;
+}
+#fingerMap b {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--ink);
+  margin-top: 4px;
+}
+#fingerMap i {
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 2px;
+  background: var(--mint);
+  width: 0;
+}
+#practicePads {
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 8px;
+}
+#practicePads button {
+  height: 40px;
+  padding: 9px;
+  font-size: 11px;
+  justify-content: center;
+}
+body[data-control="camera"] #practicePads {
+  display: none;
+}
+body:not([data-control="camera"]) #fingerMap {
+  display: none;
+}
+.thumbRow {
+  display: flex;
+  gap: 9px;
+}
+.thumbRow button {
+  width: 70px;
+  font-size: 12px;
+}
+#thumbSurface {
+  position: relative;
+  flex: 1;
+  height: 68px;
+  border: 1px solid #ffffff14;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: ew-resize;
+  background: linear-gradient(90deg, transparent, #b0efc808, transparent);
+}
+#thumbSurface span {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--mint);
+}
+#thumbSurface small {
+  font-size: 9px;
+  color: var(--muted);
+}
+#thumbStick {
+  position: fixed;
+  z-index: 5;
+  width: 110px;
+  height: 54px;
+  margin-left: -55px;
+  margin-top: -27px;
+  border: 1px solid #b0efc855;
+  background: #0b101488;
+  border-radius: 30px;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+#thumbStick i {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #b0efc840;
+  border: 1px solid var(--mint);
+}
+#pads.invisible #thumbSurface {
+  border-color: transparent;
+  background: transparent;
+}
+#pads.invisible #thumbSurface span,
+#pads.invisible #thumbSurface small,
+#pads.invisible .thumbRow button {
+  color: transparent;
+}
+#pads.invisible .thumbRow button {
+  border-color: transparent;
+  background: none;
+}
+#pads.invisible .thumbRow button.held {
+  background: #b0efc822;
+  color: var(--mint);
+}
+#preview.mirrored video,
+#preview.mirrored canvas {
+  transform: scaleX(-1);
+}
+#scene.impact {
+  animation: impact 0.16s ease-out;
+}
+@keyframes impact {
+  0% {
+    transform: translateX(-2px);
+  }
+  35% {
+    transform: translateX(3px);
+  }
+  70% {
+    transform: translateX(-1px);
+  }
+  100% {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #scene.impact {
+    animation: none;
+  }
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  #pads {
+    left: 25px;
+    right: 25px;
+    bottom: 28px;
+    display: flex;
+    align-items: end;
+    gap: 14px;
+  }
+  #fingerMap {
+    width: 35%;
+    background: #0b1014aa;
+    padding: 10px;
+    pointer-events: none;
+  }
+  .thumbRow {
+    width: 50%;
+    margin-left: auto;
+    pointer-events: auto;
+  }
+  .thumbRow #thumbSurface {
+    height: 48px;
+    background: #0b1014bb;
+  }
+  .thumbRow small {
+    display: none;
+  }
+  #practicePads {
+    width: 40%;
+    pointer-events: auto;
+    gap: 4px;
+  }
+  #practicePads button {
+    width: auto;
+    flex: 1;
+    background: #0b1014bb;
+    font-size: 9px;
+  }
+  #thumbSurface span {
+    font-size: 8px;
+  }
+  #liveStatus {
+    max-width: none;
+    pointer-events: none;
+  }
+}

@@ -1,7 +1,8 @@
 import * as T from "./vendor/three.module.js";
-import { makeGame, stepGame, FixedClock, clamp } from "./controller.js";
-import { loadAnatomy, AnatomyFighter } from "./rig.js";
-import { HandTracker } from "./tracking.js";
+import { makeGame, stepGame, FixedClock, clamp } from "./controller.js?v=0.2.0";
+import { loadAnatomy, AnatomyFighter } from "./rig.js?v=0.2.0";
+import { HandTracker } from "./tracking.js?v=0.2.0";
+import { thumbMovement } from "./puppet.js?v=0.2.0";
 const $ = (id) => document.getElementById(id);
 const welcome = $("welcome"),
   menu = $("menu"),
@@ -11,6 +12,8 @@ let game = makeGame(),
   limb = "lead",
   ready = false,
   touch = null,
+  thumb = null,
+  lastInput = null,
   feedbackUntil = 0,
   wasTracked = false;
 const holds = new Map(),
@@ -63,6 +66,9 @@ function clearControls() {
   holds.clear();
   keys.clear();
   touch = null;
+  thumb = null;
+  $("thumbStick").hidden = true;
+  $("thumbSurface").setAttribute("aria-valuenow", "0");
   document.querySelectorAll(".held").forEach((e) => e.classList.remove("held"));
   clock.reset();
 }
@@ -76,13 +82,37 @@ function selectLimb(value) {
     .forEach((e) =>
       e.setAttribute("aria-pressed", String(e.dataset.limb === limb)),
     );
-  $("playerState").textContent = {
-    lead: "LEAD HAND",
-    rear: "REAR HAND",
-    kick: "LEAD KICK",
-  }[limb];
+  syncHUD();
+}
+function syncHUD() {
+  const left = game.playerIndex === 0;
+  $("leftName").textContent = left ? "YOU" : "ECHO";
+  $("rightName").textContent = left ? "ECHO" : "YOU";
+  const playerLabel =
+    mode === "camera"
+      ? "FINGER PUPPET"
+      : {
+          lead: "LEAD ARM",
+          rear: "REAR ARM",
+          kick: "LEAD KICK",
+          rearKick: "REAR KICK",
+        }[limb];
+  const opponentLabel =
+    game.mode === "spar" ? "SPARRING PARTNER" : "TRAINING DUMMY";
+  $("leftState").textContent = left ? playerLabel : opponentLabel;
+  $("rightState").textContent = left ? opponentLabel : playerLabel;
+  $("health0").setAttribute(
+    "aria-label",
+    left ? "Your health" : "Opponent health",
+  );
+  $("health1").setAttribute(
+    "aria-label",
+    left ? "Opponent health" : "Your health",
+  );
+  document.body.dataset.control = mode;
 }
 function preview() {
+  $("preview").classList.toggle("mirrored", $("mirrorInput").checked);
   $("preview").hidden =
     mode !== "camera" || !tracker.stream || !$("showPreview").checked;
   $("preview").querySelector("span").textContent =
@@ -91,22 +121,25 @@ function preview() {
 async function startCamera() {
   if (!ready) return;
   mode = "camera";
+  syncHUD();
   clearControls();
   welcome.close();
   menu.close();
   const ok = await tracker.start($("cameraChoice").value);
   preview();
   if (!ok) mode = "camera-error";
+  syncHUD();
 }
 function practice() {
   tracker.stop();
   mode = "touch";
+  syncHUD();
   clearControls();
   welcome.close();
   menu.close();
   preview();
   say(
-    "Touch practice: drag in the arena to strike. Thumb pads select a limb or step.",
+    "Touch practice: drag toward the opponent to strike. Drag the lower strip to move.",
   );
 }
 $("startCamera").onclick = startCamera;
@@ -128,17 +161,34 @@ $("recalibrate").onclick = () => {
 };
 $("showPreview").onchange = preview;
 $("resetRound").onclick = () => {
-  game = makeGame();
+  game = makeGame(Number($("playerSide").value));
   game.mode = $("opponent").value;
   clearControls();
   $("feedback").textContent = "";
   menu.close();
-  say("New round. Step in to get within reach.");
+  syncHUD();
+  say("New round. Drag your thumb to get within reach.");
 };
 $("opponent").onchange = () => {
   game.mode = $("opponent").value;
-  $("opponentState").textContent =
-    game.mode === "spar" ? "SPARRING PARTNER" : "TRAINING DUMMY";
+  syncHUD();
+};
+$("playerSide").onchange = () => {
+  game = makeGame(Number($("playerSide").value));
+  game.mode = $("opponent").value;
+  feedbackUntil = 0;
+  clearControls();
+  syncHUD();
+  say(
+    game.playerIndex === 0
+      ? "Left fighter: move your hand RIGHT to punch forward."
+      : "Right fighter: move your hand LEFT to punch forward.",
+  );
+};
+$("mirrorInput").onchange = preview;
+$("cameraChoice").onchange = () => {
+  $("mirrorInput").checked = $("cameraChoice").value === "user";
+  preview();
 };
 $("hidePads").onclick = () => {
   const hidden = $("pads").classList.toggle("invisible");
@@ -164,29 +214,75 @@ document.querySelectorAll("[data-hold]").forEach((e) => {
   e.onpointercancel = release;
   e.onlostpointercapture = release;
 });
+function startThumb(e) {
+  if (paused() || thumb) return;
+  e.preventDefault();
+  e.currentTarget.setPointerCapture(e.pointerId);
+  thumb = { id: e.pointerId, startX: e.clientX, x: e.clientX, y: e.clientY };
+  const stick = $("thumbStick");
+  stick.hidden = false;
+  stick.style.left = e.clientX + "px";
+  stick.style.top = e.clientY + "px";
+  stick.firstElementChild.style.transform = "translate(0px, 0px)";
+}
+function moveThumb(e) {
+  if (thumb?.id !== e.pointerId) return;
+  thumb.x = e.clientX;
+  const dx = clamp(thumb.x - thumb.startX, -60, 60);
+  $("thumbStick").firstElementChild.style.transform = `translate(${dx}px, 0px)`;
+  $("thumbSurface").setAttribute(
+    "aria-valuenow",
+    String(Math.round((dx / 60) * 100)),
+  );
+}
+function releasePointer(e) {
+  if (touch?.id === e.pointerId) touch = null;
+  if (thumb?.id === e.pointerId) {
+    thumb = null;
+    $("thumbStick").hidden = true;
+    $("thumbSurface").setAttribute("aria-valuenow", "0");
+  }
+}
 arena.onpointerdown = (e) => {
+  if (mode === "camera") {
+    startThumb(e);
+    return;
+  }
   if (mode !== "touch" || paused() || touch) return;
   e.preventDefault();
   arena.setPointerCapture(e.pointerId);
   touch = { id: e.pointerId, startX: e.clientX, x: e.clientX, y: e.clientY };
 };
 arena.onpointermove = (e) => {
+  moveThumb(e);
   if (touch?.id === e.pointerId) {
     touch.x = e.clientX;
     touch.y = e.clientY;
   }
 };
-const release = (e) => {
-  if (touch?.id === e.pointerId) touch = null;
-};
-arena.onpointerup = release;
-arena.onpointercancel = release;
-arena.onlostpointercapture = release;
+$("thumbSurface").onpointerdown = startThumb;
+$("thumbSurface").onpointermove = moveThumb;
+for (const e of [arena, $("thumbSurface")]) {
+  e.onpointerup = releasePointer;
+  e.onpointercancel = releasePointer;
+  e.onlostpointercapture = releasePointer;
+}
 window.addEventListener("keydown", (e) => {
   if (paused() || e.metaKey || e.ctrlKey || e.altKey) return;
-  if (["1", "2", "3"].includes(e.key))
-    selectLimb({ 1: "lead", 2: "rear", 3: "kick" }[e.key]);
-  if (["a", "d", "g", "j", "ArrowUp", "ArrowDown"].includes(e.key)) {
+  if (["1", "2", "3", "4"].includes(e.key))
+    selectLimb({ 1: "lead", 2: "rear", 3: "kick", 4: "rearKick" }[e.key]);
+  if (
+    [
+      "a",
+      "d",
+      "g",
+      "j",
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+    ].includes(e.key)
+  ) {
     e.preventDefault();
     keys.add(e.key);
   }
@@ -198,18 +294,23 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden && tracker.stream) {
     tracker.stop();
     mode = "camera-error";
+    syncHUD();
     preview();
     say("Camera paused while away. Open Menu to restart.");
   }
 });
 function input(now) {
-  let i = mode === "camera" ? tracker.input(now) : { active: false };
+  const facing = game.fighters[game.playerIndex].facing;
+  let i =
+    mode === "camera"
+      ? tracker.input(now, { facing, mirrored: $("mirrorInput").checked })
+      : { active: false };
   if (mode === "touch") {
     const box = arena.getBoundingClientRect();
     i = {
       active: !!touch || keys.has("j"),
       extension: touch
-        ? clamp(Math.abs(touch.x - touch.startX) / (box.width * 0.24), 0, 1)
+        ? clamp(((touch.x - touch.startX) * facing) / (box.width * 0.2), 0, 1)
         : keys.has("j")
           ? 1
           : 0,
@@ -227,9 +328,11 @@ function input(now) {
   return {
     ...i,
     limb,
-    move:
-      (held.includes("forward") || keys.has("d") ? 1 : 0) -
-      (held.includes("back") || keys.has("a") ? 1 : 0),
+    move: thumb
+      ? thumbMovement(thumb.x - thumb.startX, facing)
+      : ((keys.has("d") || keys.has("ArrowRight") ? 1 : 0) -
+          (keys.has("a") || keys.has("ArrowLeft") ? 1 : 0)) *
+        facing,
     guard: held.includes("guard") || keys.has("g"),
   };
 }
@@ -323,13 +426,15 @@ async function init() {
     say("Graphics paused. Reload the page to resume.");
   });
   ready = true;
+  syncHUD();
   $("startCamera").disabled = false;
   $("touchPractice").disabled = false;
   $("startCamera").textContent = "Start rear camera";
   say("Ready. Choose camera control or touch practice.");
   window.handFighter = {
     snapshot: () => ({
-      version: "0.1.0",
+      version: "0.2.0",
+      input: structuredClone(lastInput),
       mode,
       paused: paused(),
       game: structuredClone(game),
@@ -360,16 +465,37 @@ async function init() {
     if (!paused()) {
       tracker.tick(now);
       const controls = input(now);
+      lastInput = controls;
+      ["lead", "rear", "kick", "rearKick"].forEach((name, i) => {
+        const p = game.fighters[game.playerIndex].limbs[name];
+        $("finger" + i).style.width =
+          Math.round(Math.max(p.extension, p.lift) * 100) + "%";
+      });
       clock.advance(now, (dt) => {
         stepGame(game, controls, dt);
         for (const event of game.events) {
           if (event.type === "round") {
             $("feedback").textContent =
-              event.winner === 0 ? "ROUND · YOU" : "ROUND · ECHO";
+              event.winner === null
+                ? "DRAW"
+                : event.winner === game.playerIndex
+                  ? "ROUND · YOU"
+                  : "ROUND · ECHO";
             feedbackUntil = Infinity;
           } else {
             $("feedback").textContent =
-              event.type === "block" ? "BLOCK" : "CONTACT";
+              event.type === "block"
+                ? "BLOCK"
+                : (event.combo > 1 ? event.combo + " HIT · " : "") +
+                  {
+                    lead: "JAB",
+                    rear: "CROSS",
+                    kick: "KICK",
+                    rearKick: "REAR KICK",
+                  }[event.limb];
+            $("scene").classList.remove("impact");
+            void $("scene").offsetWidth;
+            $("scene").classList.add("impact");
             feedbackUntil = now + 400;
           }
         }
@@ -379,7 +505,7 @@ async function init() {
         if (active !== wasTracked) {
           say(
             active
-              ? "Tracking. Move sideways to strike; return to center to recover."
+              ? "Fingers control limbs. Move toward your opponent to strike; drag your thumb to move."
               : "Hand lost — guarding. Bring your whole hand back into view.",
           );
           wasTracked = active;
