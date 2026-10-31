@@ -3,7 +3,7 @@ title: Hand Fighter — Specification
 version: 0.1
 date: 2026-10-31
 owner: Shane Trimbur
-status: M0 spec, awaiting approval
+status: M0 built, phone check pending
 deploy_path: /lab/fighter/
 source_path: public/lab/fighter/
 related:
@@ -101,8 +101,12 @@ middle MCP (9), `x` = pinky MCP (17) → index MCP (5) made orthogonal to `y`, `
 | Hip flexion, left/right leg | `mcp` of index / middle | leg gain × 1.5 |
 | Hip abduction | `spread` of index / middle | leg gain × 1.0 |
 | Knee flexion | `curl` of index / middle | leg gain × 1.0 |
-| Shoulder elevation | `thumbOpen` / `spread` of pinky | arm gain × 2.0 |
-| Elbow flexion | `curl` of thumb / pinky | arm gain × 1.0 |
+| Shoulder elevation | reach: `thumbOpen`, or 1.8 × pinky `spread` away from the hand | arm gain × 1.2 |
+| Elbow flexion | `curl` of thumb / pinky, minus 2.6 × reach | arm gain × 1.0 |
+
+Reach couples the arm so swinging the thumb or pinky outward reads as a punch: the arm rises and
+the guard's bent elbow (124°) straightens together. Mapping curl alone could only straighten the
+elbow by the relaxed digit's curl (about 25°).
 | Spine lateral flexion (split over 3 segments) | `roll` | 0.6 |
 
 Stance (the pose at neutral and after tracking loss): slight knee bend, fists up in a guard. In M0
@@ -159,6 +163,8 @@ ms, share of frames with a hand over the last 3 s), sliders for leg gain, arm ga
 - G6 fuzz: 10,000 frames of random, teleporting, NaN-filled, empty and partial landmark sets → all angles finite and in range, no throw.
 - Headless Chromium smoke test of `#demo` (no console errors, stage draws). Run in the session, not in CI.
 
+Run: `node --test tests/lab-fighter/*.test.mjs` (Node 18+, no dependencies).
+
 <a id="non-goals"></a>
 ## 10. M0 non-goals
 
@@ -182,7 +188,7 @@ pads, menu and home-screen install (M4), character roster (M5), tests in CI.
 
 | ID | Scope | Status |
 |---|---|---|
-| M0 | Hand-puppet feasibility: rear camera, features, puppet map, skeleton guy, G1–G6 tests | spec |
+| M0 | Hand-puppet feasibility: rear camera, features, puppet map, skeleton guy, G1–G6 tests | built 2026-10-31, phone check pending |
 | M1 | Grounded fighter controller (G7): grounded body, stance foot lock, stepping, jump with a fixed arc; keyboard and touch drive; spaghetti fuzz test | planned |
 | M2 | Calibration flow, flick-to-strike (wind-up, hit, recovery), limb locked during a strike | planned |
 | M3 | Opponent: second fighter, capsule hits, health, rounds, CPU that issues the same joint targets | planned |
@@ -193,15 +199,15 @@ pads, menu and home-screen install (M4), character roster (M5), tests in CI.
 ## 13. M0 TODO
 
 - [x] Spec (this file)
-- [ ] `body.js`: skeleton and ROM data with provenance; quaternion helpers; FK
-- [ ] `body.js`: ROM clamp, joint springs (critically damped, max speed), stance pose
-- [ ] `body.js`: puppet map from digit angles with neutral and gains
-- [ ] `hand.js`: palm frame, digit angles, roll, framing, frame validity (G6)
-- [ ] `hand.js`: One Euro filter (from Shape Lab), synthetic hand builder
-- [ ] `tests/lab-fighter/hand.test.mjs`, `body.test.mjs`: §9 suites
-- [ ] `tracker.js`: rear camera with fallback and switch; MediaPipe GPU → CPU; detect loop; stats
-- [ ] `render.js`: 3/4, front, side projection; capsule bones; ground and shadow
-- [ ] `index.html` + `app.js`: top bar, stage, thumbnail with framing light, digit bars, readouts, sliders
-- [ ] `#demo` synthetic hand script
-- [ ] Headless Chromium check of `#demo`; `npm run build`
+- [x] `body.js`: skeleton and ROM data with provenance; quaternion helpers; FK
+- [x] `body.js`: ROM clamp, joint springs (critically damped, max speed), stance pose
+- [x] `body.js`: puppet map from digit angles with neutral and gains
+- [x] `hand.js`: palm frame, digit angles, roll, framing, frame validity (G6)
+- [x] `hand.js`: One Euro filter (from Shape Lab), synthetic hand builder
+- [x] `tests/lab-fighter/hand.test.mjs`, `body.test.mjs`: §9 suites (18 tests)
+- [x] `tracker.js`: rear camera with fallback and switch; MediaPipe GPU → CPU; detect loop; stats
+- [x] `render.js`: 3/4, front, side projection; capsule bones; ground and shadow
+- [x] `index.html` + `app.js`: top bar, stage, thumbnail with framing light, digit bars, readouts, sliders
+- [x] `#demo` synthetic hand script
+- [x] Headless Chromium check of `#demo` (phone, landscape, desktop; no errors, no sideways scroll); `npm run build`
 - [ ] Merge to `main`, check the live URL on iPhone, fill §11

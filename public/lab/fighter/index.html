@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Hand Fighter M0: puppet a skeleton fighter with your hand through the rear camera.">
+<title>Hand Fighter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Same instrument-bench look as Shape Lab: one dark theme on purpose. */
+:root {
+  --bg: #0c0d0e;
+  --panel: #131618;
+  --line: #24292c;
+  --fg: #e6e8e6;
+  --muted: #8a9291;
+  --accent: #d9875f;
+  --accent2: #7fb7a8;
+  --bad: #e7806c;
+  --display: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+* { -webkit-tap-highlight-color: transparent; }
+html { touch-action: manipulation; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--display); font-size: 14px;
+  padding: env(safe-area-inset-top, 0px) max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+.app { display: grid; gap: 12px; max-width: 1320px; margin: 0 auto; }
+
+/* Top bar: the menu lives up here, away from the thumb's resting area. */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 6; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 0; background: var(--bg); }
+.bar h1 { font-size: 16px; font-weight: 700; margin: 0 6px 0 0; letter-spacing: -.01em; }
+.bar .grow { flex: 1; }
+button { font: 600 12.5px var(--display); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; cursor: pointer; min-height: 36px; }
+button:hover { border-color: #3c4448; }
+button[aria-pressed=true] { border-color: var(--accent); color: var(--accent); }
+button.primary { background: var(--accent); color: #140c08; border-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.stage { position: relative; height: 56vh; min-height: 300px; border-radius: 14px; overflow: hidden; background: #111; border: 1px solid var(--line); }
+#view { display: block; width: 100%; height: 100%; touch-action: none; }
+.hint { position: absolute; left: 12px; right: 130px; bottom: 10px; font: 11.5px/1.45 var(--mono); color: #ffffffcc; text-shadow: 0 1px 2px #000a; pointer-events: none; }
+.cam { position: absolute; top: 10px; right: 10px; width: 112px; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #000; pointer-events: none; }
+.cam video, .cam canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cam.mirror video, .cam.mirror canvas { transform: scaleX(-1); }
+.light { position: absolute; left: 6px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: #3a4144; box-shadow: 0 0 0 2px #0008; }
+.light.ok { background: var(--accent2); }
+.light.warn { background: var(--accent); }
+.light.bad { background: var(--bad); }
+.start { position: absolute; inset: 0; display: grid; place-content: center; gap: 12px; padding: 24px; text-align: center; background: linear-gradient(#0c0d0ed9, #0c0d0ef2); }
+.start p { margin: 0; max-width: 34ch; color: var(--muted); line-height: 1.55; font-size: 13px; }
+.start .row { justify-content: center; }
+
+.bench { display: grid; gap: 12px; min-width: 0; align-content: start; }
+.card { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 12px; display: grid; gap: 10px; }
+.card h2 { margin: 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.status { font: 11.5px/1.5 var(--mono); color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.5em; }
+.status.bad { color: var(--bad); }
+.status.ok { color: var(--accent2); }
+.digit { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 3px 10px; align-items: center; font-size: 12.5px; }
+.digit .who b { display: block; font-weight: 600; }
+.digit .who span { font-size: 11px; color: var(--muted); }
+.meter { height: 8px; border-radius: 4px; background: #0b0d0e; border: 1px solid var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: var(--accent); }
+.digit code { grid-column: 2; font: 10.5px var(--mono); color: #6f7877; }
+.digit.off { opacity: .55; }
+.read { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.read div { display: grid; gap: 2px; }
+.read span { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.read b { font: 500 15px var(--mono); font-variant-numeric: tabular-nums; }
+.prm { display: grid; grid-template-columns: minmax(0, 1fr) 46px; gap: 4px 10px; align-items: center; font-size: 12.5px; }
+.prm label { grid-column: 1 / -1; }
+.prm input { width: 100%; accent-color: var(--accent); margin: 0; }
+.prm output { font: 12px var(--mono); text-align: right; color: var(--muted); }
+.note { font-size: 12px; color: var(--muted); line-height: 1.55; margin: 0; }
+.note b { color: var(--fg); font-weight: 600; }
+
+@media (min-width: 900px), (orientation: landscape) and (max-height: 560px) {
+  html, body { height: 100%; }
+  body { overflow: hidden; box-sizing: border-box; }
+  .app { height: 100%; grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); grid-template-rows: auto minmax(0, 1fr); }
+  .bar { grid-column: 1 / -1; position: static; }
+  .stage { height: auto; min-height: 0; }
+  .bench { overflow-y: auto; padding-right: 4px; padding-bottom: 12px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <h1>Hand Fighter</h1>
+    <button id="btnCam">Start camera</button>
+    <button id="btnNeutral" disabled>Set neutral</button>
+    <button id="btnDemo" aria-pressed="false">Demo</button>
+    <span class="grow"></span>
+    <button id="btnView" title="Change the view">View: 3/4</button>
+    <button id="btnSwitch" title="Use the next camera" hidden>Switch camera</button>
+  </header>
+
+  <div class="stage">
+    <canvas id="view" aria-label="Skeleton fighter"></canvas>
+    <div class="cam" id="camBox"><video id="cam" playsinline muted autoplay></video><canvas id="camOverlay"></canvas><span class="light" id="light"></span></div>
+    <div class="hint" id="hint"></div>
+    <div class="start" id="startCard">
+      <p><b>Hold the phone in one hand. Reach the other hand in front of the rear camera</b>, about 25–40 cm away: fingers pointing down, palm toward the camera.</p>
+      <p>Index and middle fingers are the legs. Thumb and pinky are the arms. Tilt your hand to lean.</p>
+      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap"><button class="primary" id="startCam">Start rear camera</button><button id="startDemo">Watch demo</button></div>
+    </div>
+  </div>
+
+  <aside class="bench">
+    <div class="card">
+      <h2>Status</h2>
+      <div class="status" id="status">Tap Start rear camera, or watch the demo.</div>
+      <div class="read">
+        <div><span>Camera</span><b id="rFps">–</b></div>
+        <div><span>Detect</span><b id="rMs">–</b></div>
+        <div><span>Tracked</span><b id="rTracked">–</b></div>
+        <div><span>Framing</span><b id="rFrame">–</b></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Fingers</h2>
+      <div id="digits"></div>
+    </div>
+    <div class="card">
+      <h2>Tuning</h2>
+      <div class="prm"><label for="gLegs">Leg gain</label><input id="gLegs" type="range" min="0.3" max="2" step="0.05" value="1"><output id="oLegs">1.00</output></div>
+      <div class="prm"><label for="gArms">Arm gain</label><input id="gArms" type="range" min="0.3" max="2" step="0.05" value="1"><output id="oArms">1.00</output></div>
+      <div class="prm"><label for="gSmooth">Smoothing</label><input id="gSmooth" type="range" min="0" max="1" step="0.05" value="0.5"><output id="oSmooth">0.50</output></div>
+      <p class="note">This is M0, a feasibility test: the pelvis is pinned, so lifting both legs leaves him sitting in the air. Joint limits, speed limits and the ease back to guard when your hand leaves the picture are already on.</p>
+    </div>
+  </aside>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
