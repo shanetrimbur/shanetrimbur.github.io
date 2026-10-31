@@ -41,6 +41,7 @@ Static files, no build step, served by GitHub Pages from `public/lab/shapes/`.
 | `core.js` | Runtime: GL, shader assembly, control rack, formula slots, presets, render loop, input, hand control |
 | `modules/spire.js` | Neo-Gothic spire scene (kind `sdf`) |
 | `modules/photo-warp.js` | Photo warper (kind `image`) |
+| `modules/lattice-tower.js` | Exoskeleton Tower (kind `sdf`): floor-index sequence tower + p/q moiré exoskeleton + golden-angle rooftop |
 
 Modules self-register: `window.LAB_MODULES.push(module)`. The view is routed by URL hash (`#spire`, `#photo-warp`).
 
@@ -158,3 +159,10 @@ Pipeline: after each frame (≈15 Hz) the image shader renders into a 128×128 f
 - [x] `index.html`: Sound card (switch, status, legend, formulas)
 - [x] Headless test: worklet loads, analysis runs, no errors
 - [x] Deploy and verify
+
+<a id="module-log"></a>
+## 12. Module log
+
+| Date | Module | Paradigm |
+|---|---|---|
+| 2026-10-31 | `lattice-tower` | Building as a function of floor index n (plan, rotation, scale, notch, window rule mod m); exoskeleton rod spacing = bay·p/q → moiré, realigns every lcm; rooftop items on golden-angle positions |
