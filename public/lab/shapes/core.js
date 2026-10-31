@@ -464,9 +464,9 @@ function analysisPass() {
 function loop(now) {
   gestureTick(now);
   if (interacting && now - lastInteract > 200) { interacting = false; dirty = true; }
-  const animated = mod.kind === 'image' && (texFromCam || (mod.animatedBy || []).some(k => values[k] !== 0));
+  const animated = (mod.kind === 'image' && texFromCam) || (mod.animatedBy || []).some(k => values[k] !== 0);
   if (handActive || animated || (window.LAB_AUDIO && window.LAB_AUDIO.running && mod.kind === 'image')) dirty = true;
-  if (dirty) { dirty = false; render(mod.kind === 'sdf' && (interacting || handActive) ? 0.45 : 1); }
+  if (dirty) { dirty = false; render(mod.kind === 'sdf' && (interacting || handActive || animated) ? 0.45 : 1); }
   requestAnimationFrame(loop);
 }
 new ResizeObserver(() => { dirty = true; }).observe(stage);
