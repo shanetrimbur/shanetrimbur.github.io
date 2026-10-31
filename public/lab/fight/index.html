@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"
+    />
+    <meta name="theme-color" content="#0b1014" />
+    <title>Hand Fighter · Shane’s Lab</title>
+    <meta
+      name="description"
+      content="A rear-camera hand-controlled anatomy fighting experiment. Your hand steers. Your fighter stays grounded."
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <a class="brand" href="../shapes/" aria-label="Back to Shape Lab"
+          >LAB <span>/</span> HAND FIGHTER</a
+        ><button id="menuButton" aria-haspopup="dialog">
+          Menu <span>☰</span>
+        </button>
+      </header>
+      <div class="scoreboard">
+        <div>
+          <span class="name">YOU <small id="playerState">LEAD HAND</small></span
+          ><progress
+            id="health0"
+            max="100"
+            value="100"
+            aria-label="Your health"
+          ></progress>
+        </div>
+        <span class="round">01<br /><small>TRAINING</small></span>
+        <div>
+          <span class="name opponent"
+            ><small id="opponentState">TRAINING DUMMY</small> ECHO</span
+          ><progress
+            id="health1"
+            max="100"
+            value="100"
+            aria-label="Opponent health"
+          ></progress>
+        </div>
+      </div>
+      <main
+        id="arena"
+        aria-label="Fighting arena. In touch practice, drag here to aim and extend a strike."
+      >
+        <canvas id="scene"></canvas>
+        <div class="arenaLabel">
+          HAND / BODY<br /><span>CONTROL EXPERIMENT 001</span>
+        </div>
+        <div id="feedback" aria-live="polite"></div>
+        <div id="preview" hidden>
+          <video id="camera" autoplay muted playsinline></video
+          ><canvas id="landmarks"></canvas><span>REAR CAMERA</span>
+        </div>
+        <div class="groundLabel">STAY GROUNDED.</div>
+      </main>
+      <div id="liveStatus">
+        <span id="statusDot"></span
+        ><span id="status" role="status">Loading the anatomy character…</span
+        ><span id="fps"></span>
+      </div>
+      <section id="pads" aria-label="Thumb controls">
+        <div class="padHint">
+          <span>THUMB CONTROLS</span
+          ><button id="hidePads" aria-pressed="false">Hide labels</button>
+        </div>
+        <div class="padGrid">
+          <button data-limb="lead" aria-pressed="true">
+            <small>01</small>Lead hand</button
+          ><button data-limb="rear" aria-pressed="false">
+            <small>02</small>Rear hand</button
+          ><button data-limb="kick" aria-pressed="false">
+            <small>03</small>Kick</button
+          ><button data-hold="back"><small>←</small>Step back</button
+          ><button data-hold="guard"><small>◇</small>Guard</button
+          ><button data-hold="forward"><small>→</small>Step in</button>
+        </div>
+      </section>
+      <footer>
+        <span>ANATOMY / BodyParts3D · CC BY 4.0</span
+        ><span>v0.1 · prototype</span>
+      </footer>
+    </div>
+    <dialog id="welcome">
+      <div class="eyebrow">SHANE’S LAB / EXPERIMENT 001</div>
+      <h1>Your hand.<br /><em>Their fight.</em></h1>
+      <p>Control a grounded anatomy fighter with the hand behind your phone.</p>
+      <ol>
+        <li>
+          Hold the phone in one hand. Show your other hand to the
+          <strong>rear camera</strong>.
+        </li>
+        <li>
+          Hold still to calibrate. Move sideways to extend, up or down to aim.
+        </li>
+        <li>Use your thumb to select a limb, step, or guard.</li>
+      </ol>
+      <button id="startCamera" class="primary" disabled>
+        Loading character…</button
+      ><button id="touchPractice" class="secondary" disabled>
+        Try touch practice
+      </button>
+      <p class="fine">
+        Camera processing stays on your device. Tracking files download on first
+        use. This is a controls experiment, not a biomechanics simulation.
+      </p>
+      <a class="fine" href="../shapes/">← Back to Shape Lab</a>
+    </dialog>
+    <dialog id="menu">
+      <div class="dialogHead">
+        <h2>Take a breath.</h2>
+        <button id="closeMenu" aria-label="Close menu">✕</button>
+      </div>
+      <p class="muted">The fight is paused.</p>
+      <div class="settings">
+        <label
+          >Opponent<select id="opponent">
+            <option value="dummy">Training dummy</option>
+            <option value="spar">Sparring partner</option>
+          </select></label
+        ><label
+          >Camera<select id="cameraChoice">
+            <option value="environment">Rear camera</option>
+            <option value="user">Front camera / desktop</option>
+          </select></label
+        ><label
+          >Show camera preview<input id="showPreview" type="checkbox" checked
+        /></label>
+      </div>
+      <div class="menuActions">
+        <button id="restartCamera">Start / restart camera</button
+        ><button id="recalibrate">Recalibrate hand</button
+        ><button id="practiceMode">Touch practice (camera off)</button
+        ><button id="resetRound">Reset round</button>
+      </div>
+      <details>
+        <summary>Controls & credits</summary>
+        <p>
+          Move your hand sideways from neutral to extend; return to center to
+          recover. Move vertically to aim. Keep the whole hand visible. Tracking
+          loss returns you to guard.
+        </p>
+        <p>
+          Touch practice: drag across the arena. Keyboard: 1/2/3 select a limb,
+          A/D step, G guards, J strikes, ↑/↓ aim.
+        </p>
+        <p>
+          BodyParts3D, © The Database Center for Life Science.
+          <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+          Reduced mesh and provisional skinning from Motion-Runtime, with
+          closed-hand corrections. Anatomy and deformation remain under review.
+        </p>
+        <p>
+          Three.js (MIT). MediaPipe (Apache 2.0).
+          <a href="./CREDITS.md">Asset and dependency details</a>.
+        </p>
+      </details>
+    </dialog>
+    <div id="fatal" hidden role="alert"></div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

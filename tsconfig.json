@@ -10,5 +10,11 @@
         "src/*"
       ]
     }
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "public/lab/fight",
+    "tools/fight"
+  ]
 }

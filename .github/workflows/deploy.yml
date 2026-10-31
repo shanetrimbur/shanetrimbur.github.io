@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
+      - name: Check fighter controls and anatomy rig
+        run: node --test tools/fight/controller.test.mjs
+
       - name: Build with Astro
         run: npm run build
         
