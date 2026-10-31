@@ -1,9 +1,9 @@
 ---
 title: Shape Lab — Specification
-version: 0.1
+version: 0.2
 date: 2026-10-31
 owner: Shane Trimbur
-status: M1 shipped
+status: M2a shipped
 deploy_path: /lab/shapes/
 source_path: public/lab/shapes/
 related:
@@ -107,6 +107,9 @@ Source: an uploaded photo, the live front camera, or a generated default (modula
 | ID | Scope | Status |
 |---|---|---|
 | M1 | Runtime + module format, deformers, spire module, photo warper, hand control | shipped 2026-10-31 |
+| M2a | Image-derived sound for Photo Warp (wave terrain, hue harmony, edge rhythm, tempo lock) | shipped 2026-10-31 |
+| M2b | Image-derived sound for the spire (SDF slice orbit, bell partials, deformer → timbre) | planned |
+| M2c | Spatial input: head-coupled window, gyro orbit, rear-camera reach-in | planned |
 | M2 | Port the eye as a module (raster kind or SDF), retire `/lab/procedural-iris/` duplicate | planned |
 | M3 | Per-slot formula history (undo), preset gallery, share-by-URL | planned |
 | M4 | Optional on-device depth (one inference per photo) → 3D relief in the photo warper | planned |
@@ -128,3 +131,30 @@ Source: an uploaded photo, the live front camera, or a generated default (modula
 - [x] `modules/photo-warp.js`: operator chain, slots, starter mapping
 - [x] Headless render test of both modules with a fake camera
 - [x] Deploy to `/lab/shapes/` and verify the live URL
+
+<a id="audio"></a>
+## 10. Image-derived sound
+
+Principle: the picture is the instrument. Sound is computed from the rendered frame, so it changes exactly when the image changes.
+
+| Layer | Source in the image | Math |
+|---|---|---|
+| Timbre | Luminance along a closed orbit around the warp centre (circle → Lissajous 3:2) | Wave terrain synthesis; a k-fold kaleidoscope makes the k-th harmonic dominant (angular Fourier series) |
+| Harmony | Hue histogram weighted by saturation × value | Hue bin i → pitch class `(7i) mod 12` (circle of fifths); top bins = chord, top 5–7 = scale |
+| Melody | — | Degree sequence `gᵏ mod 13` (primitive root g → all-interval row), mapped onto the image's scale |
+| Rhythm | Mean Sobel edge magnitude; mean brightness | Euclidean (Bjorklund/Bresenham) hits over n steps; melody and percussion loops of coprime length realign after their product (CRT) |
+| Brightness | Mean value | Pad low-pass cutoff |
+| Visual lock | — | Kaleidoscope turns one fold per bar; ripples pulse once per beat; both use the audio clock |
+
+Pipeline: after each frame (≈15 Hz) the image shader renders into a 128×128 framebuffer, `readPixels` → JS analysis → `postMessage` to an AudioWorklet that runs the step clock and synthesis sample-accurately (pad: 3–5 wave-terrain voices; pluck: Karplus–Strong; bass: sine; percussion: filtered noise) → dry + synthetic-IR convolution reverb. `navigator.audioSession.type = 'playback'` lets iOS play through the silent switch. Sound parameters live in the slider rack (group Sound), so gestures and learned poses drive sound with picture. Three JavaScript formula slots (`HUE_TO_PC`, `MELODY`, `RHYTHM`) are editable.
+
+<a id="m2a-todo"></a>
+## 11. M2a TODO
+
+- [x] Spec section (this)
+- [x] `audio-worklet.js`: step clock, wave-terrain pad with table crossfade, Karplus–Strong pluck, bass, percussion, soft clip
+- [x] `audio.js`: start/stop, iOS playback session, reverb, analysis (hue, brightness, edges, orbit table), chord/scale/rhythm/melody derivation, JS formula slots, status line, tempo-lock overrides
+- [x] `core.js`: Sound params for image modules, 128×128 analysis pass + readback, audio clock for `uTime`, uniform overrides
+- [x] `index.html`: Sound card (switch, status, legend, formulas)
+- [x] Headless test: worklet loads, analysis runs, no errors
+- [x] Deploy and verify
