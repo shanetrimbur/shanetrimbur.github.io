@@ -33,4 +33,20 @@
       --color-button-accent-hover: 56, 189, 248;
     }
   }
+
+  /* Paper is white whatever theme is on screen: dark ink, darker accent. */
+  @media print {
+    :root,
+    :root [data-theme] {
+      --color-text-base: 17, 24, 39;
+      --color-text-muted: 55, 65, 81;
+      --color-text-inverted: 255, 255, 255;
+      --color-fill: 255, 255, 255;
+      --muted: 209, 213, 219;
+      --color: 29, 78, 216;
+      --color-button-accent: 29, 78, 216;
+      --color-button-accent-hover: 29, 78, 216;
+      --color-button-muted: 243, 244, 246;
+    }
+  }
 }
