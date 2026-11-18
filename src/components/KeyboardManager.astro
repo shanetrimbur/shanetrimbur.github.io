@@ -158,9 +158,9 @@ const profilesInfo = profiles.map(({ network, url }) => {
 		}
 
 		.footer-button {
-			background: #fff;
+			background: rgb(var(--color-fill));
 			position: fixed;
-			border: 1px solid #eee;
+			border: 1px solid rgb(var(--muted));
 			right: 10px;
 			bottom: 10px;
 			width: 50px;
@@ -174,7 +174,7 @@ const profilesInfo = profiles.map(({ network, url }) => {
 	}
 
 	footer {
-		@apply bg-skin-button-accent;
+		@apply bg-skin-button-accent text-skin-inverted;
 		position: fixed;
 		bottom: 0px;
 		width: 100%;
@@ -190,27 +190,19 @@ const profilesInfo = profiles.map(({ network, url }) => {
 		animation-range: entry 100% cover 10%;
 	}
 	kbd {
-		@apply bg-skin-muted;
+		@apply bg-skin-fill text-skin-base;
 		border-radius: 4px;
 		padding: 2px 4px;
 		font-size: 12px;
 	}
+	/* Command palette follows the site theme (the vars below switch with it). */
 	#hotkeypad {
 		--hotkeypad-bg-kbd: rgb(var(--muted));
 		--hotkeypad-bg-backdrop: rgb(var(--color-fill));
 		--hotkeypad-bg-container: rgb(var(--color-fill));
-		--hotkeypad-bg-item-hover: rgba(var(--color-text), 20%);
+		--hotkeypad-bg-item-hover: rgba(var(--color), 0.12);
 		--hotkeypad-border-container: rgb(var(--muted));
-		--hotkeypad-border-container-hover: rgb(var(--color-fill));
-		--hotkeypad-fg-muted: rgb(var(--muted));
-		@media (prefers-color-scheme: dark) {
-			--hotkeypad-bg-kbd: rgb(var(--muted));
-			--hotkeypad-bg-backdrop: rgb(var(--color-fill));
-			--hotkeypad-bg-container: rgb(var(--color-fill));
-			--hotkeypad-bg-item-hover: rgba(var(--color), 10%);
-			--hotkeypad-border-container: rgb(var(--muted));
-			--hotkeypad-border-container-hover: rgb(var(--color-fill));
-			--hotkeypad-fg-muted: rgb(var(--color-text-base));
-		}
+		--hotkeypad-border-container-hover: rgb(var(--color-text-muted));
+		--hotkeypad-fg-muted: rgb(var(--color-text-base));
 	}
 </style>
