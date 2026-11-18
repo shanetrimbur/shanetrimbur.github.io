@@ -2,14 +2,26 @@
 import Arrow from "@/icons/Arrow.astro";
 import Section from "../Section.astro";
 
-import { projects } from "@cv";
+import cv from "@cv";
+
+interface Project {
+	name: string;
+	description: string;
+	highlights: string[];
+	url: string;
+	github?: string;
+}
+
+// An empty "projects" list in cv.json hides the whole section.
+const projects = cv.projects as Project[];
 ---
 
+{projects.length > 0 && (
 <Section className={Astro.props.className} title="Projects">
 	<div class="grid grid-cols-1 gap-3 lg:grid-cols-2 print:grid-cols-2 print:gap-x-6 print:gap-y-3">
 		{
 			projects.map(({ url, description, highlights, name, github }) => {
-				const href = url.startsWith("http") ? url : github;
+				const href = url.startsWith("http") ? url : github ?? url;
 				return (
 					<div role="contentinfo" class="relative flex flex-col rounded-md bg-skin-hue/5 p-5 shadow-sm ring-1 ring-skin-hue/40 print:break-inside-avoid print:bg-transparent print:p-0 print:shadow-none print:ring-0">
 						<div class="flex items-center justify-between space-x-[10px]">
@@ -52,6 +64,7 @@ import { projects } from "@cv";
 		}
 	</div>
 </Section>
+)}
 
 <style>
 	ul {
