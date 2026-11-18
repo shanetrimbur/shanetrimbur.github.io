@@ -1,6 +1,7 @@
 ---
 import { basics } from "@cv";
 import Vengeance from "@/layouts/Vengeance.astro";
+import "@/styles/themes.css";
 
 interface Props {
 	title: string;
@@ -36,7 +37,6 @@ const { image, summary, url, theme } = basics;
 
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Itim" />
 
-		<link rel="stylesheet" href="/themes/themes.css" />
 		<script is:inline>
 			// Apply the saved or system theme before first paint (no flash of the wrong theme).
 			(() => {
