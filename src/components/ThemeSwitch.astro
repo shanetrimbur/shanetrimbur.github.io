@@ -21,35 +21,42 @@ import Theme from "@/icons/themeSwitch.astro";
 		</select>
 	</div>
 
-	<style>
-		:global(.dark) {
-			color-scheme: dark;
-		}
-	</style>
-
 	<script>
+		// "system" follows the OS setting (live); "dark" / "light" are remembered.
+		// Layout.astro applies the same rule in <head> before first paint.
 		const select = document.getElementById("themeSwitch") as HTMLSelectElement;
-		const theme = localStorage.getItem("theme");
-		const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+		const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
 
-		if (theme !== null) {
-			select.value = theme;
-		} else {
-			select.value = systemTheme;
+		function readPreference(): string {
+			try {
+				return localStorage.getItem("theme") ?? "system";
+			} catch {
+				return "system";
+			}
 		}
 
-		function updateTheme(value: string) {
-			const theme = value === "system" ? systemTheme : value;
-			document.documentElement.classList.remove("light", "dark");
-			document.documentElement.classList.add(theme);
-			localStorage.setItem("theme", value);
+		function savePreference(value: string) {
+			try {
+				if (value === "system") localStorage.removeItem("theme");
+				else localStorage.setItem("theme", value);
+			} catch {}
 		}
 
-		updateTheme(select.value);
+		function applyTheme(value: string) {
+			const dark = value === "dark" || (value === "system" && systemDark.matches);
+			document.documentElement.classList.toggle("dark", dark);
+		}
 
-		select.addEventListener("change", (event: Event) => {
-			const select = event.target as HTMLSelectElement;
-			updateTheme(select.value);
+		select.value = readPreference();
+		applyTheme(select.value);
+
+		select.addEventListener("change", () => {
+			savePreference(select.value);
+			applyTheme(select.value);
+		});
+
+		systemDark.addEventListener("change", () => {
+			if (select.value === "system") applyTheme("system");
 		});
 	</script>
 </div>
