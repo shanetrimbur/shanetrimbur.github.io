@@ -59,7 +59,15 @@
         "POA&M",
         "ATO",
         "RHEL",
-        "VMware"
+        "VMware",
+        "Broadcom",
+        "Palo Alto",
+        "Juniper",
+        "Cisco",
+        "Aruba",
+        "Thales",
+        "Knox",
+        "Tenable"
       ],
       "responsibilities": []
     },
